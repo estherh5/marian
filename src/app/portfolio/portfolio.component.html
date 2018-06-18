@@ -1,0 +1,54 @@
+<!-- Stock title -->
+<h1 *ngIf="selectedStock && selectedStock.name !== ''"
+  [ngClass]="{'collapsed': selectedStock.isCollapsed, 'stock-name': true, 'section-title': true}">
+
+    <!-- Link to collapse/expand stock -->
+    <a (click)="selectedStock.isCollapsed = !selectedStock.isCollapsed" title="Collapse stock">
+      <!-- Collapsed/expanded caret -->
+      <i [ngClass]="{'fa-caret-right': selectedStock.isCollapsed, 'fa-caret-down': !selectedStock.isCollapsed, 'fas': true, 'w-15': true}"></i>
+
+      {{ selectedStock.name }} ({{ selectedStock.symbol }}):
+
+      <span *ngIf="selectedStock.isRising !== null"
+        [ngClass]="{'up': selectedStock.isRising, 'down': !selectedStock.isRising, 'relative': true}">
+          <!-- Stock price -->
+          {{ '$' + selectedStock.price.toFixed(2) }}
+          <span class="dollar-change">
+            <!-- Price change in USD -->
+            {{ selectedStock.change > 0 ? '+ $' + selectedStock.change.toFixed(2) : '- $' + selectedStock.change.toFixed(2).split('-')[1] }}
+          </span>
+          <span class="percent-change">
+            <!-- Price change % -->
+            {{ selectedStock.changePercent > 0 ? '+ ' + selectedStock.changePercent.toFixed(2) + '%' : '- ' + selectedStock.changePercent.toFixed(2).split('-')[1] + '%' }}
+          </span>
+      </span>
+    </a>
+
+    <!-- Remove stock button -->
+    <a class="remove" (click)="removeStock(selectedStock)" title="Remove stock">&times;</a>
+</h1>
+
+<app-calculator *ngIf="selectedStock.name"
+  [ngClass]="{'hidden': selectedStock.isCollapsed}"
+  [selectedStock]="selectedStock"
+  (shareEntered)="onShareEntered($event)"
+  (shareRemoved)="onShareRemoved($event)">
+</app-calculator>
+
+<app-chart *ngIf="selectedStock.priceHistory.length > 0"
+  [ngClass]="{'hidden': selectedStock.isCollapsed}"
+  [selectedStock]="selectedStock"
+  (chartUpdated)="onChartUpdated($event)">
+</app-chart>
+
+<app-company *ngIf="selectedStock.company.symbol"
+  [ngClass]="{'hidden': selectedStock.isCollapsed}"
+  [company]="selectedStock.company"
+  [peRatio]="selectedStock.peRatio">
+</app-company>
+
+<app-news *ngIf="selectedStock.news.length > 0"
+  [ngClass]="{'hidden': selectedStock.isCollapsed}"
+  [news]="selectedStock.news"
+  (stockSelected)="onStockSelected($event)">
+</app-news>

@@ -1,0 +1,29 @@
+<h1 *ngIf="!isLandingPage">
+  <a id="title" href=".">Marian</a>
+</h1>
+
+<app-search
+  [isLandingPage]="isLandingPage"
+  [selectedStocks]="selectedStocks"
+  (stockSelected)="addNewStock($event)">
+</app-search>
+
+<div id="main-container">
+  <app-net-chart *ngIf="selectedStocks.length > 0 && renderNetChart"
+    [selectedStocks]="selectedStocks"
+    [update]="updateNetChart"
+    (chartUpdated)="onNetChartUpdated()"
+    (optionUpdated)="displayNetChart()">
+  </app-net-chart>
+
+  <app-portfolio *ngFor="let selectedStock of selectedStocks"
+    id="{{ selectedStock.symbol }}"
+    [selectedStock]="selectedStock"
+    (chartUpdated)="onPriceChartUpdated($event)"
+    (shareEntered)="addNewShare($event)"
+    (shareUpdated)="displayNetChart()"
+    (shareRemoved)="removeShare($event)"
+    (stockRemoved)="removeStock($event)"
+    (stockSelected)="addNewStock($event)">
+  </app-portfolio>
+</div>

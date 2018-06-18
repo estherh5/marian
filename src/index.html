@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Marian</title>
+    <base href="/">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <!-- Google Fonts stylesheet -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans|Rajdhani|Stalemate">
+
+    <!-- amCharts stylesheet -->
+    <link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
+
+    <!-- Font Awesome stylesheet -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.1/css/all.css" integrity="sha384-O8whS3fhG2OnA5Kas0Y9l3cfpmYjapjI0E4theH4iuMD+pLhbf6JI0jIMfYcK3yZ" crossorigin="anonymous">
+
+    <!-- Google Analytics script to track page views -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-91236421-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-91236421-1');
+    </script>
+
+    <!-- amCharts scripts -->
+    <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+    <script src="https://www.amcharts.com/lib/3/serial.js"></script>
+    <script src="https://www.amcharts.com/lib/3/amstock.js"></script>
+    <script src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
+    <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
+
+    <!-- Moment.js script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.0/moment.min.js"></script>
+  </head>
+
+  <body>
+    <app-root style="flex:1"></app-root>
+
+    <!-- Page footer -->
+    <div id="footer">
+      © 2018 <a href="https://crystalprism.io">Crystal Prism</a>
+      <div class="credits">
+        Data provided for free by <a href="https://iextrading.com/developer" target="_blank">IEX</a>. View <a href="https://iextrading.com/api-exhibit-a/" target="_blank">IEX’s Terms of Use</a>.
+      </div>
+      <div class="credits">
+        Stock search powered by <a href="https://www.algolia.com/" target="_blank"><img id="algolia" src="assets/algolia.svg"> algolia</a>.
+      </div>
+    </div>
+  </body>
+</html>

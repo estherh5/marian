@@ -1,0 +1,3 @@
+User-agent: *
+Disallow:
+Sitemap: https://marian.crystalprism.io/sitemap.xml

@@ -1,0 +1,73 @@
+.hidden {
+  display: none !important;
+}
+
+.stock-name {
+  padding-top: 10px;
+  padding-left: 10px;
+}
+
+.collapsed {
+  padding-bottom: 10px;
+}
+
+.w-15 {
+  width: 15px;
+}
+
+.remove {
+  visibility: hidden;
+  margin-left: 57px;
+}
+
+.stock-name:hover > .remove {
+  visibility: visible;
+}
+
+.up {
+  color: #05d405;
+}
+
+a:hover .up {
+  color: #07ff07;
+}
+
+.down {
+  color: #ff0000;
+}
+
+a:hover .down {
+  color: #ff634a;
+}
+
+.relative {
+  position: relative;
+}
+
+.floating {
+  position: absolute;
+  right: -7px;
+  font-size: 17px;
+}
+
+.up .floating {
+  top: 4px;
+}
+
+.down .floating {
+  bottom: 2px;
+}
+
+.dollar-change {
+  position: absolute;
+  width: fit-content;
+  margin-top: 5px;
+  font-size: 10px;
+}
+
+.percent-change {
+  position: absolute;
+  width: fit-content;
+  margin-top: 16px;
+  font-size: 10px;
+}
