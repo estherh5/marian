@@ -1,0 +1,67 @@
+<div [ngClass]="{'p-10': true, 'landing': isLandingPage, 'main': !isLandingPage}">
+  <div class="search-container">
+
+    <!-- App intro -->
+    <h1 *ngIf="isLandingPage"
+      class="welcome">
+        Welcome to <a href="." class="title">Marian</a>, Robinhood's beautiful counterpart
+    </h1>
+
+    <div *ngIf="isLandingPage"
+      class="intro">
+        Get <b class="important">real-time prices</b> and up to <b class="important">20 years</b> of data for any stock.
+        <br>
+        Visualize the <b class="important">net equity</b> for each stock in your portfolio.
+        <br>
+        Read the <b class="important">latest news</b> from top investment sources.
+        <br>
+    </div>
+
+    <div [ngClass]="{'mt-50': !isLandingPage, 'search-bar-container': true}">
+      <!-- Stock search bar -->
+      <input #searchBar
+        class="search-bar"
+        placeholder="{{ isLandingPage ? 'Search for a stock to get started...' : 'Search for stocks...'}}"
+        type="text"
+        (keyup)="searchStocks($event)"
+        autofocus>
+
+      <!-- Stock search button -->
+      <button #searchButton
+        class="search-icon"
+        (click)="searchStocks($event)">
+          <i class="fas fa-search"></i>
+      </button>
+
+      <!-- Stock search bar results -->
+      <div class="search-results">
+        <table #stocksList class="stocks-list">
+          <tbody>
+
+            <!-- Stock symbol and name -->
+            <tr *ngFor="let searchResult of searchResults"
+              [ngClass]="{'selected': searchResult.selected}"
+              (mouseenter)="hoverOverStock(searchResult)"
+              (click)="selectStock(searchResult)">
+                <td class="symbol">
+                  {{ searchResult.symbol }}
+                </td>
+                <td class="name">
+                  {{ searchResult.name }}
+                </td>
+            </tr>
+
+            <!-- No results found message -->
+            <tr *ngIf="noneFound" class="none">
+              <td>
+                No results found
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>

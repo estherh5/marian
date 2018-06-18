@@ -1,0 +1,130 @@
+body {
+  min-height: 100vh;
+  margin: 0px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  background-attachment: fixed;
+  background-image: url('assets/background.svg');
+  background-size: cover;
+  font-family: 'Open Sans', sans-serif;
+}
+
+a, .stock-name {
+  color: #21c6ce;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+a:hover, .stock-name:hover {
+  color: #25e1ea;
+}
+
+input {
+  padding: 9px;
+  border-color: #dcdcdc;
+  border-radius: 4px;
+  border-style: solid;
+  border-width: 1px;
+  font-family: 'Open Sans', sans-serif;
+}
+
+:focus {
+  border-color: #21c6ce;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 4px;
+  outline: none;
+}
+
+a:focus {
+  border: none;
+  outline-color: #21c6ce;
+  outline-style: solid;
+  outline-width: 1px;
+}
+
+a[href="http://www.amcharts.com"] {
+  display: none !important;
+}
+
+button {
+  padding-top: 3px;
+  padding-bottom: 3px;
+  padding-left: 8px;
+  padding-right: 8px;
+  border: none;
+  border-radius: 4px;
+  background-color: #21c6ce;
+  font-family: 'Open Sans', sans-serif;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+input[type="button" i] {
+  cursor: pointer;
+}
+
+.amChartsButtonSelected {
+  text-shadow: none !important;
+  background-color: #f5f5f5 !important;
+}
+
+.amChartsButton:hover, .amChartsButtonSelected:hover {
+  text-shadow: 0.25px -0.25px 0px;
+  background-color: #f5f5f5 !important;
+}
+
+button:hover {
+  background-color: #25e1ea;
+}
+
+h1 {
+  margin: 0px;
+}
+
+.section-title {
+  background-color: #ffffff;
+  cursor: default;
+}
+
+#footer {
+  left: 0px;
+  right: 0px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.credits {
+  font-size: 10px;
+}
+
+#algolia {
+  height: 10px;
+  margin-bottom: -1px;
+  margin-right: -0.5px;
+}
+
+input[type="button"] {
+  width: fit-content;
+  padding: 3px;
+  border: none !important;
+  border-radius: 2px;
+  margin-right: 3px;
+  margin-bottom: 3px;
+  background-color: #f5f5f5;
+  color: #000000;
+  font-size: 10px;
+  text-align: center;
+  cursor: pointer;
+}

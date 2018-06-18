@@ -1,0 +1,9 @@
+<div class="chart-container">
+  <h1 class="section-title">Net Equity</h1>
+
+  <!-- Toggle chart y-axis to display % or $ units button -->
+  <button id="toggle" (click)="toggleAxis();">{{ buttonText }}</button>
+
+  <!-- Net equity chart container -->
+  <div id="net-chart" class="chartdiv" #chartdiv></div>
+</div>

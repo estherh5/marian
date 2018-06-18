@@ -1,0 +1,36 @@
+.chart-container {
+  position: relative;
+  padding: 10px;
+  background-color: #ffffff;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.chartdiv {
+  height: 500px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+#toggle {
+  position: absolute;
+  top: 110px;
+  left: 55px;
+  border: #676767 solid 1px;
+  background-color: #ffffff;
+  color: #000000;
+  opacity: 0.6;
+  z-index: 1;
+}
+
+#toggle:hover {
+  background-color: #d0d0d0;
+  opacity: 1;
+}

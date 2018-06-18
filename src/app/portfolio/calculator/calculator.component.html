@@ -1,0 +1,74 @@
+<div class="calculator-container">
+  <h1 class="section-title">Shares</h1>
+
+  <table>
+    <div *ngFor="let share of selectedStock.shares; let i = index">
+      <tr class="stock-row">
+
+        <!-- Share purchase date -->
+        <td>
+          Purchase Date:
+          <input
+            id="{{ selectedStock.symbol + 'dateInput' + i }}"
+            type="date"
+            [ngClass]="{'empty': !share.date, 'error': share.dateError, 'date': true}"
+            [ngModel]="share.date"
+            (ngModelChange)="inputChanged(share, 'date', $event)"
+            (blur)="onShareEntered(i)"
+            required>
+        </td>
+
+        <!-- Number of shares purchased -->
+        <td>
+          Number of Shares:
+          <input
+            id="{{ selectedStock.symbol + 'numberInput' + i }}"
+            min="1"
+            placeholder="0"
+            step="1"
+            type="number"
+            [ngClass]="{'error': share.numberError, 'number': true}"
+            [ngModel]="share.number"
+            (ngModelChange)="inputChanged(share, 'number', $event)"
+            (blur)="onShareEntered(i)">
+        </td>
+
+        <!-- Price per share purchased -->
+        <td>
+          Price per Share: $
+          <input
+            id="{{ selectedStock.symbol + 'priceInput' + i }}"
+            min="0"
+            placeholder="0.00"
+            step="1"
+            type="number"
+            [ngClass]="{'error': share.priceError, 'price': true}"
+            [ngModel]="share.price"
+            (ngModelChange)="inputChanged(share, 'price', $event)"
+            (blur)="onShareEntered(i); formatPrice(share);">
+        </td>
+
+        <!-- Remove share button -->
+        <td>
+          <a class="remove" (click)="removeShare(selectedStock.symbol, i)">&times;</a>
+        </td>
+      </tr>
+
+      <!-- Share purchase date error display -->
+      <tr *ngIf="share.dateError">
+        <td colspan="4" class="error pb-7">{{ share.dateError }}</td>
+      </tr>
+
+      <!-- Share number error display -->
+      <tr *ngIf="share.numberError">
+        <td colspan="4" class="error pb-7">{{ share.numberError }}</td>
+      </tr>
+
+      <!-- Share price error display -->
+      <tr *ngIf="share.priceError">
+        <td colspan="4" class="error pb-7">{{ share.priceError }}</td>
+      </tr>
+    </div>
+  </table>
+
+</div>

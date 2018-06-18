@@ -1,0 +1,36 @@
+<div id="articles-container">
+  <h1 class="section-title">Recent News</h1>
+
+  <div id="articles">
+    <div *ngFor="let article of news"
+      class="article">
+
+        <!-- Article thumbnail that links to article -->
+        <a href="{{ article.url }}" target="_blank" class="article-image">
+          <img src="{{ article.image }}">
+        </a>
+
+        <div class="article-info">
+
+          <!-- Article source | number of minutes/hours/days ago that article was published -->
+          <div class="source-name">
+            <a href="{{ article.url }}" target="_blank">{{ article.source }}</a> | {{ toTimeAgo(article.datetime) }}
+          </div>
+
+          <!-- Article headline (trimmed if > 100 characters) -->
+          <div class="article-title">
+            <a href="{{ article.url }}" target="_blank" title="{{ article.headline }}">
+              {{ article.headline.length > 100 ? article.headline.slice(0, 100) + '...' : article.headline }}
+            </a>
+          </div>
+
+          <!-- Related stocks -->
+          <div id="related-container">
+            <div *ngFor="let related of article.related" class="related" (click)="selectStock(related)">{{ related }}</div>
+          </div>
+        </div>
+
+    </div>
+  </div>
+
+</div>

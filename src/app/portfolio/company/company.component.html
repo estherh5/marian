@@ -1,0 +1,41 @@
+<div id="company-container">
+
+  <h1 class="section-title">About</h1>
+
+  <div id="description">
+    {{ company.description }}
+  </div>
+
+  <div id="company-info">
+    <!-- Company's CEO -->
+    <div *ngIf="company.CEO" class="item" title="CEO">
+      {{ company.CEO }}
+    </div>
+
+    <!-- Company's price-earnings ratio -->
+    <div *ngIf="peRatio" class="item" title="Price/Earnings Ratio">
+      P/E = {{ peRatio }}
+    </div>
+
+    <!-- Company's exchange market -->
+    <div *ngIf="company.exchange" class="item" title="Exchange">
+      {{ company.exchange }}
+    </div>
+
+    <!-- Company's sector and industry -->
+    <div *ngIf="company.sector" class="item" title="Sector">
+      {{ company.sector }} | {{ company.industry }}
+    </div>
+
+    <!-- Company's stock issue type -->
+    <div *ngIf="company.issueType" class="item" title="Issue Type">
+      {{ company.issueType }}
+    </div>
+
+    <!-- Company's website -->
+    <div *ngIf="company.website" class="item" title="Website">
+      <a href="{{ company.website }}" target="_blank">{{ company.website }}</a>
+    </div>
+  </div>
+
+</div>
