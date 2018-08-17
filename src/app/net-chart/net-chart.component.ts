@@ -313,6 +313,14 @@ export class NetChartComponent implements OnInit {
       "colors": colors,
       "dataSets": dataSets,
       "categoryAxesSettings": {
+        "dateFormats": [
+          {period:'mm',format:'L:NN A'},
+          {period: "hh", format: "L:NN A"},
+          {period:'DD',format:'MMM DD'},
+          {period:'WW',format:'MMM DD'},
+          {period:'MM',format:'MMM'},
+          {period:'YYYY',format:'YYYY'}
+        ],
         "minPeriod": "mm"
       },
       "panels": [ {
@@ -365,7 +373,6 @@ export class NetChartComponent implements OnInit {
           "selected": this.period === 'All' ? true : false,
           "label": "All"
         } ],
-        "dateFormat": "MM-DD-YYYY",
         "position": 'top',
         "periodsText": '',
         "inputFieldsEnabled": false,

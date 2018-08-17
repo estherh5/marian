@@ -129,6 +129,14 @@ export class ChartComponent implements OnInit {
       "type": "stock",
       "theme": "light",
       "categoryAxesSettings": {
+        "dateFormats": [
+          {period:'mm',format:'L:NN A'},
+          {period: "hh", format: "L:NN A"},
+          {period:'DD',format:'MMM DD'},
+          {period:'WW',format:'MMM DD'},
+          {period:'MM',format:'MMM'},
+          {period:'YYYY',format:'YYYY'}
+        ],
         "minPeriod": "mm"
       },
       "dataSets": [ {
@@ -296,8 +304,7 @@ export class ChartComponent implements OnInit {
               }];
             }) : (null)
           }
-        } ],
-        "dateFormat": "MM-DD-YYYY JJ:NN",
+        } ]
       },
       "panelsSettings": {
         "precision": 2,
