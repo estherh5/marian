@@ -47,8 +47,8 @@ export class StockService {
 
   // Get URL for stock article thumbnail image
   getStockNewsImage(symbol: string, articleId: string): Observable<any> {
-    const url = `https://pause-api.appspot.com/api/marian/image/${symbol}` +
-      `/${articleId}`;
+    const url = `https://pause-app-api.herokuapp.com/api/marian/image/` +
+      `${symbol}/${articleId}`;
 
     return this.http.get(url);
   }
