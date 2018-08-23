@@ -2,7 +2,7 @@ import { Component, OnInit, Input, ViewChild, ElementRef, Output,
   EventEmitter } from '@angular/core';
 
 import * as moment from 'moment';
-import { AmChartsService, AmChart } from "@amcharts/amcharts3-angular";
+import { AmChartsService, AmChart } from '@amcharts/amcharts3-angular';
 
 import { Stock } from '../../stock';
 
@@ -106,10 +106,10 @@ export class ChartComponent implements OnInit {
       .filter(stock => stock['dividend'] !== 0);
 
     stockEvents = stockEvents.map(stock => ({
-      "date": stock['date'],
-      "graph": "g1",
-      "text": "D",
-      "description": "Dividend:<b> $" + parseFloat(stock['dividend'])
+      'date': stock['date'],
+      'graph': 'g1',
+      'text': 'D',
+      'description': 'Dividend:<b> $' + parseFloat(stock['dividend'])
         .toFixed(2) + '</b>'
     }));
 
@@ -126,120 +126,120 @@ export class ChartComponent implements OnInit {
 
     // Create price history amCharts stock chart with specified options
     this.chart = this.AmCharts.makeChart(this.chartdiv.nativeElement.id, {
-      "type": "stock",
-      "theme": "light",
-      "categoryAxesSettings": {
-        "dateFormats": [
-          {period:'mm',format:'L:NN A'},
-          {period: "hh", format: "L:NN A"},
-          {period:'DD',format:'MMM DD'},
-          {period:'WW',format:'MMM DD'},
-          {period:'MM',format:'MMM'},
-          {period:'YYYY',format:'YYYY'}
+      'type': 'stock',
+      'theme': 'light',
+      'categoryAxesSettings': {
+        'dateFormats': [
+          { period: 'mm', format: 'L:NN A' },
+          { period: 'hh', format: 'L:NN A' },
+          { period: 'DD', format: 'MMM DD' },
+          { period: 'WW', format: 'MMM DD' },
+          { period: 'MM', format: 'MMM' },
+          { period: 'YYYY', format: 'YYYY' }
         ],
-        "minPeriod": "mm"
+        'minPeriod': 'mm'
       },
-      "dataSets": [ {
-        "title": this.selectedStock.symbol,
-        "color": "#21c6ce",
-        "fieldMappings": [ {
-          "fromField": "close",
-          "toField": "close"
+      'dataSets': [ {
+        'title': this.selectedStock.symbol,
+        'color': '#21c6ce',
+        'fieldMappings': [ {
+          'fromField': 'close',
+          'toField': 'close'
         }, {
-          "fromField": "volume",
-          "toField": "volume"
+          'fromField': 'volume',
+          'toField': 'volume'
         } ],
-        "categoryField": "date",
-        "dataProvider": this.selectedStock.priceHistory,
-        "stockEvents": stockEvents
+        'categoryField': 'date',
+        'dataProvider': this.selectedStock.priceHistory,
+        'stockEvents': stockEvents
       } ],
-      "stockEventsSettings": {
-        "backgroundColor": "#ffffff",
-        "balloonColor": "#b9b9b9",
-        "borderColor": "#21c6ce",
-        "rollOverColor": "#21c6ce",
-        "type": "sign"
+      'stockEventsSettings': {
+        'backgroundColor': '#ffffff',
+        'balloonColor': '#b9b9b9',
+        'borderColor': '#21c6ce',
+        'rollOverColor': '#21c6ce',
+        'type': 'sign'
       },
-      "panels": [ {
-        "title": "Price",
-        "stockGraphs": [ {
-          "id": "g1",
-          "valueField": "close",
-          "comparable": true,
-          "compareField": "value",
-          "balloonText": "[[title]]:<b> $[[value]]</b>",
-          "compareGraphBalloonText": "[[title]]:<b> $[[value]]</b>"
+      'panels': [ {
+        'title': 'Price',
+        'stockGraphs': [ {
+          'id': 'g1',
+          'valueField': 'close',
+          'comparable': true,
+          'compareField': 'value',
+          'balloonText': '[[title]]:<b> $[[value]]</b>',
+          'compareGraphBalloonText': '[[title]]:<b> $[[value]]</b>'
         } ],
-        "stockLegend": {
-          "periodValueTextComparing": "[[percents.value.close]]%",
-          "periodValueTextRegular": "$[[value.close]]",
-          "valueTextRegular": "$[[value]]"
+        'stockLegend': {
+          'periodValueTextComparing': '[[percents.value.close]]%',
+          'periodValueTextRegular': '$[[value.close]]',
+          'valueTextRegular': '$[[value]]'
         },
-        "trendLines": [ {
-          "finalDate": this.selectedStock
+        'trendLines': [ {
+          'finalDate': this.selectedStock
             .priceHistory[this.selectedStock.priceHistory.length - 1].date,
-          "finalValue": this.selectedStock
+          'finalValue': this.selectedStock
             .priceHistory[this.selectedStock.priceHistory.length - 1].close,
-          "initialDate": lineInitialDate,
-          "initialValue": initialValue,
-          "lineColor": this.selectedStock.priceHistory[this.selectedStock
-            .priceHistory.length - 1].close > initialValue ? "#05d405" :
-              "#ff0000",  // Set line color to red/green
-          "lineThickness": 1
+          'initialDate': lineInitialDate,
+          'initialValue': initialValue,
+          'lineColor': this.selectedStock.priceHistory[this.selectedStock
+            .priceHistory.length - 1].close > initialValue ? '#05d405' :
+              '#ff0000',  // Set line color to red/green
+          'lineThickness': 1
         } ]
       }, {
-        "title": "Volume",
-        "percentHeight": 30,
-        "stockGraphs": [ {
-          "valueField": "volume",
-          "type": "column",
-          "showBalloon": false,
-          "fillAlphas": 1
+        'title': 'Volume',
+        'percentHeight': 30,
+        'stockGraphs': [ {
+          'valueField': 'volume',
+          'type': 'column',
+          'showBalloon': false,
+          'fillAlphas': 1
         } ],
-        "stockLegend": {
-          "periodValueTextRegular": "[[close]]"
+        'stockLegend': {
+          'periodValueTextRegular': '[[close]]'
         }
       } ],
-      "chartScrollbarSettings": {
-        "enabled": false
+      'chartScrollbarSettings': {
+        'enabled': false
       },
-      "chartCursorSettings": {
-        "zoomable": false,
-        "valueBalloonsEnabled": true,
-        "fullWidth": true,
-        "cursorAlpha": 0.1,
-        "valueLineBalloonEnabled": true,
-        "valueLineEnabled": true,
-        "valueLineAlpha": 0.5
+      'chartCursorSettings': {
+        'zoomable': false,
+        'valueBalloonsEnabled': true,
+        'fullWidth': true,
+        'cursorAlpha': 0.1,
+        'valueLineBalloonEnabled': true,
+        'valueLineEnabled': true,
+        'valueLineAlpha': 0.5
       },
-      "periodSelector": {
-        "periods": [ {
-          "period": "hh",
-          "count": hourCount,
-          "selected": true,
-          "label": "1 day"
+      'periodSelector': {
+        'periods': [ {
+          'period': 'hh',
+          'count': hourCount,
+          'selected': true,
+          'label': '1 day'
         }, {
-          "period": "MM",
-          "count": 1,
-          "label": "1 month"
+          'period': 'MM',
+          'count': 1,
+          'label': '1 month'
         }, {
-          "period": "YYYY",
-          "count": 1,
-          "label": "1 year"
+          'period': 'YYYY',
+          'count': 1,
+          'label': '1 year'
         }, {
-          "period": "YYYY",
-          "count": 5,
-          "label": "5 years"
+          'period': 'YYYY',
+          'count': 5,
+          'label': '5 years'
         }, {
-          "period": "MAX",
-          "label": "All"
+          'period': 'MAX',
+          'label': 'All'
         } ],
-        "position": 'top',
-        "periodsText": '',
-        "inputFieldsEnabled": false,
-        "listeners": [ {
-          "event": "changed",
-          "method": event => { this.chart && this.chart.panels ?
+        'position': 'top',
+        'periodsText': '',
+        'inputFieldsEnabled': false,
+        'listeners': [ {
+          'event': 'changed',
+          'method': event => { this.chart && this.chart.panels ?
             /* Update chart trendline when period is changed if chart and its
             panels are rendered */
             this.AmCharts.updateChart(this.chart, () => {
@@ -292,29 +292,29 @@ export class ChartComponent implements OnInit {
               }
 
               this.chart.panels[0].trendLines = [{
-                "finalDate": event.endDate,
-                "finalValue": this.selectedStock.priceHistory[this
+                'finalDate': event.endDate,
+                'finalValue': this.selectedStock.priceHistory[this
                   .selectedStock.priceHistory.length - 1].close,
-                "initialDate": event.startDate,
-                "initialValue": startValue,
-                "lineColor": this.selectedStock.priceHistory[this
+                'initialDate': event.startDate,
+                'initialValue': startValue,
+                'lineColor': this.selectedStock.priceHistory[this
                   .selectedStock.priceHistory.length - 1].close > startValue ?
-                  "#05d405" : "#ff0000",  // Set line color to red/green
-                "lineThickness": 1
+                  '#05d405' : '#ff0000',  // Set line color to red/green
+                'lineThickness': 1
               }];
             }) : (null)
           }
         } ]
       },
-      "panelsSettings": {
-        "precision": 2,
-        "usePrefixes": true,
-        "fontFamily": "'Open Sans', sans-serif"
+      'panelsSettings': {
+        'precision': 2,
+        'usePrefixes': true,
+        'fontFamily': '\'Open Sans\', sans-serif'
       },
-      "valueAxesSettings": {
-        "precision": 2,
-        "unit": "$",
-        "unitPosition": "left"
+      'valueAxesSettings': {
+        'precision': 2,
+        'unit': '$',
+        'unitPosition': 'left'
       }
     } );
 
