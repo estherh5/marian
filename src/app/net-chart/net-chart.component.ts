@@ -2,7 +2,7 @@ import { Component, OnInit, Input, Output, ViewChild, ElementRef,
   EventEmitter } from '@angular/core';
 
 import * as moment from 'moment';
-import { AmChartsService, AmChart } from "@amcharts/amcharts3-angular";
+import { AmChartsService, AmChart } from '@amcharts/amcharts3-angular';
 import cloneDeep from 'lodash/cloneDeep';
 
 import { Share } from '../share';
@@ -69,8 +69,8 @@ export class NetChartComponent implements OnInit {
     let stocks = cloneDeep(this.selectedStocks);
 
     // Define colors that should be used for each stock line in the chart
-    const colors = ["#FCD202", "#0D8ECF", "#2A0CD0", "#CD0D74", "#CC0000",
-      "#00CC00", "#0000CC", "#DDDDDD", "#999999", "#333333", "#990000"];
+    const colors = ['#FCD202', '#0D8ECF', '#2A0CD0', '#CD0D74', '#CC0000',
+      '#00CC00', '#0000CC', '#DDDDDD', '#999999', '#333333', '#990000'];
 
     // Set count for number of hours to display in 1 day price view
     let hourCount;
@@ -187,61 +187,61 @@ export class NetChartComponent implements OnInit {
         .filter(price => price['dividend'] !== 0);
 
       stockEvents = stockEvents.map((event, index) => ({
-        "date": event['date'],
-        "graph": "g" + (i + 1).toString(),
-        "text": "D",
-        "description": "Dividend:<b> $" + event['dividend'].toFixed(2) +
+        'date': event['date'],
+        'graph': 'g' + (i + 1).toString(),
+        'text': 'D',
+        'description': 'Dividend:<b> $' + event['dividend'].toFixed(2) +
           '</b>',
-        "borderColor": colors[i],
-        "backgroundColor": "#ffffff",
-        "rollOverColor": colors[i]
+        'borderColor': colors[i],
+        'backgroundColor': '#ffffff',
+        'rollOverColor': colors[i]
       }));
 
       // Create dataset for stock that has net equity history
       dataSets.push({
-        "title": stock.symbol,
-        "compared": i > 0 ? true : null,
-        "fieldMappings": [ {
-          "fromField": this.type === 'percent' ? "percent" : "close",
-          "toField": this.type === 'percent' ? (i > 0 ? "percent" + (i + 1)
-            .toString() : "percent") : (i > 0 ? "close" + (i + 1)
-            .toString() : "close")
+        'title': stock.symbol,
+        'compared': i > 0 ? true : null,
+        'fieldMappings': [ {
+          'fromField': this.type === 'percent' ? 'percent' : 'close',
+          'toField': this.type === 'percent' ? (i > 0 ? 'percent' + (i + 1)
+            .toString() : 'percent') : (i > 0 ? 'close' + (i + 1)
+            .toString() : 'close')
         } ],
-        "categoryField": "date",
-        "dataProvider": dataProvider,
-        "stockEvents": stockEvents
+        'categoryField': 'date',
+        'dataProvider': dataProvider,
+        'stockEvents': stockEvents
       });
 
       // Create stock graph for stock
       stockGraphs.push({
-        "id": "g" + (i + 1).toString(),
-        "negativeLineColor": "#ff0000",
-        "lineColor": colors[i],
-        "balloonColor": colors[i],
-        "showEventsOnComparedGraphs": true,
-        "negativeBase": 0,
-        "compareGraphLineThickness": 1,
-        "compareGraph": {
-          "precision": this.type === 'percent' ? 1 : 2,
-          "lineColor": colors[i],
-          "balloonColor": colors[i],
-          "negativeLineColor": "#ff0000",
-          "showEventsOnComparedGraphs": true,
-          "negativeBase": 0
+        'id': 'g' + (i + 1).toString(),
+        'negativeLineColor': '#ff0000',
+        'lineColor': colors[i],
+        'balloonColor': colors[i],
+        'showEventsOnComparedGraphs': true,
+        'negativeBase': 0,
+        'compareGraphLineThickness': 1,
+        'compareGraph': {
+          'precision': this.type === 'percent' ? 1 : 2,
+          'lineColor': colors[i],
+          'balloonColor': colors[i],
+          'negativeLineColor': '#ff0000',
+          'showEventsOnComparedGraphs': true,
+          'negativeBase': 0
         },
-        "valueField": this.type === 'percent' ? (i > 0 ? "percent" + (i + 1)
-          .toString() : "percent") : (i > 0 ? "close" + (i + 1)
-          .toString() : "close"),
-        "compareField": this.type === 'percent' ? (i > 0 ? "percent" + (i + 1)
-          .toString() : "percent") : (i > 0 ? "close" + (i + 1)
-          .toString() : "close"),
-        "comparable": true,
-        "balloonText": this.type === 'percent' ? (
-          "[[title]]:<b> [[value]]%</b>") : (
-          "[[title]]:<b> $[[value]]</b>"),
-        "compareGraphBalloonText": this.type === 'percent' ? (
-          "[[title]]:<b> [[value]]%</b>") : (
-          "[[title]]:<b> $[[value]]</b>")
+        'valueField': this.type === 'percent' ? (i > 0 ? 'percent' + (i + 1)
+          .toString() : 'percent') : (i > 0 ? 'close' + (i + 1)
+          .toString() : 'close'),
+        'compareField': this.type === 'percent' ? (i > 0 ? 'percent' + (i + 1)
+          .toString() : 'percent') : (i > 0 ? 'close' + (i + 1)
+          .toString() : 'close'),
+        'comparable': true,
+        'balloonText': this.type === 'percent' ? (
+          '[[title]]:<b> [[value]]%</b>') : (
+          '[[title]]:<b> $[[value]]</b>'),
+        'compareGraphBalloonText': this.type === 'percent' ? (
+          '[[title]]:<b> [[value]]%</b>') : (
+          '[[title]]:<b> $[[value]]</b>')
       });
     });
 
@@ -318,139 +318,139 @@ export class NetChartComponent implements OnInit {
 
       // Create net equity line dataset
       dataSets.push({
-        "title": 'Net',
-        "compared": true,
-        "fieldMappings": [ {
-          "fromField": this.type === 'percent' ? "percent" : "close",
-          "toField": this.type === 'percent' ? "percent" + (stocks.length + 1)
-            .toString() : "close" + (stocks.length + 1).toString()
+        'title': 'Net',
+        'compared': true,
+        'fieldMappings': [ {
+          'fromField': this.type === 'percent' ? 'percent' : 'close',
+          'toField': this.type === 'percent' ? 'percent' + (stocks.length + 1)
+            .toString() : 'close' + (stocks.length + 1).toString()
         } ],
-        "categoryField": "date",
-        "dataProvider": dataProvider
+        'categoryField': 'date',
+        'dataProvider': dataProvider
       });
 
       // Create net equity line stock graph
       stockGraphs.push({
-        "id": "g" + (stocks.length + 1).toString(),
-        "negativeLineColor": "#ff0000",
-        "negativeBase": 0,
-        "lineColorField": "color",
-        "valueField": this.type === 'percent' ? "percent" + (stocks.length + 1)
-          .toString() : "close" + (stocks.length + 1).toString(),
-        "compareField": this.type === 'percent' ? "percent" +
-          (stocks.length + 1).toString() : "close" + (stocks.length + 1)
+        'id': 'g' + (stocks.length + 1).toString(),
+        'negativeLineColor': '#ff0000',
+        'negativeBase': 0,
+        'lineColorField': 'color',
+        'valueField': this.type === 'percent' ? 'percent' + (stocks.length + 1)
+          .toString() : 'close' + (stocks.length + 1).toString(),
+        'compareField': this.type === 'percent' ? 'percent' +
+          (stocks.length + 1).toString() : 'close' + (stocks.length + 1)
           .toString(),
-        "compareGraphLineThickness": 1,
-        "showEventsOnComparedGraphs": true,
-        "comparable": true,
-        "compareGraph": {
-          "precision": this.type === 'percent' ? 1 : 2,
-          "legendColor": "#05d405",
-          "showEventsOnComparedGraphs": true,
-          "negativeLineColor": "#ff0000",
-          "negativeBase": 0,
+        'compareGraphLineThickness': 1,
+        'showEventsOnComparedGraphs': true,
+        'comparable': true,
+        'compareGraph': {
+          'precision': this.type === 'percent' ? 1 : 2,
+          'legendColor': '#05d405',
+          'showEventsOnComparedGraphs': true,
+          'negativeLineColor': '#ff0000',
+          'negativeBase': 0,
         },
-        "balloonText": this.type === 'percent' ? (
-          "[[title]]:<b> [[value]]%</b>") : (
-          "[[title]]:<b> $[[value]]</b>"),
-        "compareGraphBalloonText": this.type === 'percent' ? (
-          "[[title]]:<b> [[value]]%</b>") : (
-          "[[title]]:<b> $[[value]]</b>")
+        'balloonText': this.type === 'percent' ? (
+          '[[title]]:<b> [[value]]%</b>') : (
+          '[[title]]:<b> $[[value]]</b>'),
+        'compareGraphBalloonText': this.type === 'percent' ? (
+          '[[title]]:<b> [[value]]%</b>') : (
+          '[[title]]:<b> $[[value]]</b>')
       });
     }
 
     // Create net equity amCharts stock chart with specified options
     this.chart = this.AmCharts.makeChart(this.chartdiv.nativeElement.id, {
-      "type": "stock",
-      "theme": "light",
-      "colors": colors,
-      "dataSets": dataSets,
-      "categoryAxesSettings": {
-        "dateFormats": [
-          {period:'mm',format:'L:NN A'},
-          {period: "hh", format: "L:NN A"},
-          {period:'DD',format:'MMM DD'},
-          {period:'WW',format:'MMM DD'},
-          {period:'MM',format:'MMM'},
-          {period:'YYYY',format:'YYYY'}
+      'type': 'stock',
+      'theme': 'light',
+      'colors': colors,
+      'dataSets': dataSets,
+      'categoryAxesSettings': {
+        'dateFormats': [
+          { period: 'mm', format: 'L:NN A' },
+          { period: 'hh', format: 'L:NN A' },
+          { period: 'DD', format: 'MMM DD' },
+          { period: 'WW', format: 'MMM DD' },
+          { period: 'MM', format: 'MMM' },
+          { period: 'YYYY', format: 'YYYY' }
         ],
-        "minPeriod": "mm"
+        'minPeriod': 'mm'
       },
-      "panels": [ {
-        "title": "Equity",
-        "stockGraphs": stockGraphs,
-        "stockLegend": {
-          "periodValueText": this.type === 'percent' ? (
-            "[[value.percent]]%") : ("$[[value.close]]"),
-          "valueTextRegular": this.type === 'percent' ? (
-            "[[value]]%") : ("$[[value]]"),
-          "periodValueTextRegular": this.type === 'percent' ? (
-            "[[value.percent]]%") : ("$[[value.close]]")
+      'panels': [ {
+        'title': 'Equity',
+        'stockGraphs': stockGraphs,
+        'stockLegend': {
+          'periodValueText': this.type === 'percent' ? (
+            '[[value.percent]]%') : ('$[[value.close]]'),
+          'valueTextRegular': this.type === 'percent' ? (
+            '[[value]]%') : ('$[[value]]'),
+          'periodValueTextRegular': this.type === 'percent' ? (
+            '[[value.percent]]%') : ('$[[value.close]]')
         },
-        "valueAxes": [ {
-          "labelFunction": this.type === 'percent' ?
+        'valueAxes': [ {
+          'labelFunction': this.type === 'percent' ?
             (value, valueString, axis) => valueString + '%' :
             (value, valueString, axis) => value < 0 ? '-$' +
               parseFloat(valueString.substr(1)).toFixed(2) :
               '$' + value.toFixed(2)
         } ],
       } ],
-      "chartScrollbarSettings": {
-        "enabled": false
+      'chartScrollbarSettings': {
+        'enabled': false
       },
-      "chartCursorSettings": {
-        "zoomable": false,
-        "valueBalloonsEnabled": true,
-        "fullWidth": true,
-        "cursorAlpha": 0.1,
-        "valueLineBalloonEnabled": true,
-        "valueLineEnabled": true,
-        "valueLineAlpha": 0.5
+      'chartCursorSettings': {
+        'zoomable': false,
+        'valueBalloonsEnabled': true,
+        'fullWidth': true,
+        'cursorAlpha': 0.1,
+        'valueLineBalloonEnabled': true,
+        'valueLineEnabled': true,
+        'valueLineAlpha': 0.5
       },
-      "periodSelector": {
-        "periods": [ {
-          "period": "hh",
-          "selected": this.period === '1 day' ? true : false,
-          "count": hourCount,
-          "label": "1 day"
+      'periodSelector': {
+        'periods': [ {
+          'period': 'hh',
+          'selected': this.period === '1 day' ? true : false,
+          'count': hourCount,
+          'label': '1 day'
         }, {
-          "period": "MM",
-          "selected": this.period === '1 month' ? true : false,
-          "count": 1,
-          "label": "1 month"
+          'period': 'MM',
+          'selected': this.period === '1 month' ? true : false,
+          'count': 1,
+          'label': '1 month'
         }, {
-          "period": "YYYY",
-          "selected": this.period === '1 year' ? true : false,
-          "count": 1,
-          "label": "1 year"
+          'period': 'YYYY',
+          'selected': this.period === '1 year' ? true : false,
+          'count': 1,
+          'label': '1 year'
         }, {
-          "period": "YYYY",
-          "selected": this.period === '5 years' ? true : false,
-          "count": 5,
-          "label": "5 years"
+          'period': 'YYYY',
+          'selected': this.period === '5 years' ? true : false,
+          'count': 5,
+          'label': '5 years'
         }, {
-          "period": "MAX",
-          "selected": this.period === 'All' ? true : false,
-          "label": "All"
+          'period': 'MAX',
+          'selected': this.period === 'All' ? true : false,
+          'label': 'All'
         } ],
-        "position": 'top',
-        "periodsText": '',
-        "inputFieldsEnabled": false,
-        "listeners": [ {
-          "event": "changed",
-          "method": event => {
+        'position': 'top',
+        'periodsText': '',
+        'inputFieldsEnabled': false,
+        'listeners': [ {
+          'event': 'changed',
+          'method': event => {
             event.event ? this.period = event.event.target.value : null
           }
         } ]
       },
-      "panelsSettings": {
-        "precision": this.type === 'percent' ? 1 : 2,
-        "recalculateToPercents": "never",
-        "usePrefixes": true,
-        "fontFamily": "'Open Sans', sans-serif"
+      'panelsSettings': {
+        'precision': this.type === 'percent' ? 1 : 2,
+        'recalculateToPercents': 'never',
+        'usePrefixes': true,
+        'fontFamily': '\'Open Sans\', sans-serif'
       },
-      "stockEventsSettings": {
-        "balloonColor": "#b9b9b9"
+      'stockEventsSettings': {
+        'balloonColor': '#b9b9b9'
       }
     } );
 
