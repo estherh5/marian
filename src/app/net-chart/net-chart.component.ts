@@ -102,7 +102,6 @@ export class NetChartComponent implements OnInit {
     stocks.sort((a, b) => new Date(a.shares[0].date).getTime() - new Date(b
       .shares[0].date).getTime());
 
-
     // Create list of data points for each stock
     stocks.map((stock, i) => {
       let dataProvider = [];
@@ -119,6 +118,11 @@ export class NetChartComponent implements OnInit {
       // Calculate net equity at each point in price history for each share
       stock.priceHistory.map((price, index) => {
 
+        // Add dividend to close price if it exists for price point
+        if (price.dividend !== 0) {
+          price.close += price.dividend;
+        }
+
         /* Set stock close price to net equity by multiplying stock close
         rice by number of shares and subtracting amount user paid for
         shares */
@@ -131,6 +135,15 @@ export class NetChartComponent implements OnInit {
 
             // Set number of shares for price point
             price.shares = share.number;
+
+            // Set amount invested for price point
+            price.invested = parseFloat(share.price) * share.number;
+
+            /* Calculate net equity percent increase/decrease if user toggles
+            percent view */
+            if (this.type === 'percent') {
+              price.percent = price.close / price.invested * 100;
+            }
           }
 
           /* Set stock close price to net equity for each price on or after
@@ -143,12 +156,25 @@ export class NetChartComponent implements OnInit {
 
               // Increment number of shares for price point
               price.shares += share.number;
+
+              // Increment amount invested for price point
+              price.invested += (parseFloat(share.price) * share.number);
+
+              /* Calculate net equity percent increase/decrease if user toggles
+              percent view */
+              if (this.type === 'percent') {
+                price.percent = price.close / price.invested * 100;
+              }
             }
         });
 
-        // Add dividend to close price if it exists for price point
-        if (price.dividend !== 0) {
-          price.close += price.dividend;
+        // Set initial net equity to $0 for price calculations
+        if (index === 0) {
+          price.close = 0;
+
+          if (this.type === 'percent') {
+            price.percent = 0;
+          }
         }
 
         dataProvider.push(price);
@@ -176,8 +202,10 @@ export class NetChartComponent implements OnInit {
         "title": stock.symbol,
         "compared": i > 0 ? true : null,
         "fieldMappings": [ {
-          "fromField": "close",
-          "toField": i > 0 ? "close" + (i + 1).toString() : "close"
+          "fromField": this.type === 'percent' ? "percent" : "close",
+          "toField": this.type === 'percent' ? (i > 0 ? "percent" + (i + 1)
+            .toString() : "percent") : (i > 0 ? "close" + (i + 1)
+            .toString() : "close")
         } ],
         "categoryField": "date",
         "dataProvider": dataProvider,
@@ -191,25 +219,28 @@ export class NetChartComponent implements OnInit {
         "lineColor": colors[i],
         "balloonColor": colors[i],
         "showEventsOnComparedGraphs": true,
-        "negativeBase": this.type === 'percent' ? 0 : stock.priceHistory[0]
-          .close,
+        "negativeBase": 0,
         "compareGraphLineThickness": 1,
         "compareGraph": {
+          "precision": this.type === 'percent' ? 1 : 2,
           "lineColor": colors[i],
           "balloonColor": colors[i],
           "negativeLineColor": "#ff0000",
           "showEventsOnComparedGraphs": true,
-          "negativeBase": this.type === 'percent' ? 0 : stock.priceHistory[0]
-            .close
+          "negativeBase": 0
         },
-        "valueField": i > 0 ? "close" + (i + 1).toString() : "close",
-        "compareField": i > 0 ? "close" + (i + 1).toString() : "close",
+        "valueField": this.type === 'percent' ? (i > 0 ? "percent" + (i + 1)
+          .toString() : "percent") : (i > 0 ? "close" + (i + 1)
+          .toString() : "close"),
+        "compareField": this.type === 'percent' ? (i > 0 ? "percent" + (i + 1)
+          .toString() : "percent") : (i > 0 ? "close" + (i + 1)
+          .toString() : "close"),
         "comparable": true,
         "balloonText": this.type === 'percent' ? (
-          "[[title]]:<b> [[percents.value]]%</b>") : (
+          "[[title]]:<b> [[value]]%</b>") : (
           "[[title]]:<b> $[[value]]</b>"),
         "compareGraphBalloonText": this.type === 'percent' ? (
-          "[[title]]:<b> $[[percents.value]]%</b>") : (
+          "[[title]]:<b> [[value]]%</b>") : (
           "[[title]]:<b> $[[value]]</b>")
       });
     });
@@ -219,13 +250,6 @@ export class NetChartComponent implements OnInit {
       // Sort data points for all stock datasets from oldest to newest
       allDatapoints.sort((a, b) => new Date(a.date).getTime() -
         new Date(b.date).getTime());
-
-      /* Get initial price to compare rising and falling prices against by
-      adding oldest stock(s)' net equity together */
-      let initialPrice = allDatapoints.filter(price => price.date
-        .getTime() === new Date(allDatapoints[0].date).getTime());
-
-      initialPrice = initialPrice.reduce((a, b) => a.close + b.close);
 
       /* Create array of dates that have been iterated through from all stocks'
       data points */
@@ -241,13 +265,28 @@ export class NetChartComponent implements OnInit {
         if (!dates.includes(price.date.getTime())) {
           dates.push(price.date.getTime());
 
-          dataProvider.push({
-            date: price.date,
-            close: price.close,
-            shares: price.shares,
-            dividends: price.dividend,
-            color: '#05d405'
-          });
+          if (this.type === 'percent') {
+            dataProvider.push({
+              date: price.date,
+              close: price.close,
+              shares: price.shares,
+              invested: price.invested,
+              dividends: price.dividend,
+              percent: price.percent,
+              color: '#05d405'
+            });
+          }
+
+          else {
+            dataProvider.push({
+              date: price.date,
+              close: price.close,
+              shares: price.shares,
+              invested: price.invested,
+              dividends: price.dividend,
+              color: '#05d405'
+            });
+          }
         }
 
         /* Otherwise, if data point's date has been encountered already,
@@ -262,7 +301,16 @@ export class NetChartComponent implements OnInit {
 
           dataProvider[index].shares += price.shares;
 
+          dataProvider[index].invested += price.invested;
+
           dataProvider[index].dividends += price.dividend;
+
+          /* Calculate net equity percent increase/decrease if user toggles
+          percent view */
+          if (this.type === 'percent') {
+            dataProvider[index].percent = dataProvider[index].close /
+              dataProvider[index].invested * 100;
+          }
 
           dataProvider[index].color = '#05d405';
         }
@@ -273,8 +321,9 @@ export class NetChartComponent implements OnInit {
         "title": 'Net',
         "compared": true,
         "fieldMappings": [ {
-          "fromField": "close",
-          "toField": "close" + (stocks.length + 1).toString()
+          "fromField": this.type === 'percent' ? "percent" : "close",
+          "toField": this.type === 'percent' ? "percent" + (stocks.length + 1)
+            .toString() : "close" + (stocks.length + 1).toString()
         } ],
         "categoryField": "date",
         "dataProvider": dataProvider
@@ -284,24 +333,28 @@ export class NetChartComponent implements OnInit {
       stockGraphs.push({
         "id": "g" + (stocks.length + 1).toString(),
         "negativeLineColor": "#ff0000",
-        "negativeBase": this.type === 'percent' ? 0 : initialPrice,
+        "negativeBase": 0,
         "lineColorField": "color",
-        "valueField": "close" + (stocks.length + 1).toString(),
-        "compareField": "close" + (stocks.length + 1).toString(),
+        "valueField": this.type === 'percent' ? "percent" + (stocks.length + 1)
+          .toString() : "close" + (stocks.length + 1).toString(),
+        "compareField": this.type === 'percent' ? "percent" +
+          (stocks.length + 1).toString() : "close" + (stocks.length + 1)
+          .toString(),
         "compareGraphLineThickness": 1,
         "showEventsOnComparedGraphs": true,
         "comparable": true,
         "compareGraph": {
+          "precision": this.type === 'percent' ? 1 : 2,
           "legendColor": "#05d405",
           "showEventsOnComparedGraphs": true,
           "negativeLineColor": "#ff0000",
-          "negativeBase": this.type === 'percent' ? 0 : initialPrice,
+          "negativeBase": 0,
         },
         "balloonText": this.type === 'percent' ? (
-          "[[title]]:<b> [[percents.value]]%</b>") : (
+          "[[title]]:<b> [[value]]%</b>") : (
           "[[title]]:<b> $[[value]]</b>"),
         "compareGraphBalloonText": this.type === 'percent' ? (
-          "[[title]]:<b> $[[percents.value]]%</b>") : (
+          "[[title]]:<b> [[value]]%</b>") : (
           "[[title]]:<b> $[[value]]</b>")
       });
     }
@@ -328,12 +381,19 @@ export class NetChartComponent implements OnInit {
         "stockGraphs": stockGraphs,
         "stockLegend": {
           "periodValueText": this.type === 'percent' ? (
-            "[[percents.value.close]]%") : ("$[[value.close]]"),
+            "[[value.percent]]%") : ("$[[value.close]]"),
           "valueTextRegular": this.type === 'percent' ? (
-            "[[percents.value]]%</b>") : ("$[[value]]"),
+            "[[value]]%") : ("$[[value]]"),
           "periodValueTextRegular": this.type === 'percent' ? (
-            "[[percents.value.close]]%") : ("$[[value.close]]")
-        }
+            "[[value.percent]]%") : ("$[[value.close]]")
+        },
+        "valueAxes": [ {
+          "labelFunction": this.type === 'percent' ?
+            (value, valueString, axis) => valueString + '%' :
+            (value, valueString, axis) => value < 0 ? '-$' +
+              parseFloat(valueString.substr(1)).toFixed(2) :
+              '$' + value.toFixed(2)
+        } ],
       } ],
       "chartScrollbarSettings": {
         "enabled": false
@@ -384,15 +444,10 @@ export class NetChartComponent implements OnInit {
         } ]
       },
       "panelsSettings": {
-        "precision": 2,
-        "recalculateToPercents": this.type === 'percent' ? "always" : "never",
+        "precision": this.type === 'percent' ? 1 : 2,
+        "recalculateToPercents": "never",
         "usePrefixes": true,
         "fontFamily": "'Open Sans', sans-serif"
-      },
-      "valueAxesSettings": {
-        "precision": this.type === 'percent' ? 1 : 2,
-        "unit": this.type === 'percent' ? "%" : "$",
-        "unitPosition": this.type === 'percent' ? "right" : "left"
       },
       "stockEventsSettings": {
         "balloonColor": "#b9b9b9"
