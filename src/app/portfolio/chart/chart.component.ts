@@ -219,6 +219,10 @@ export class ChartComponent implements OnInit {
           'selected': true,
           'label': '1 day'
         }, {
+          'period': 'DD',
+          'count': 14,
+          'label': '2 weeks'
+        }, {
           'period': 'MM',
           'count': 1,
           'label': '1 month'
