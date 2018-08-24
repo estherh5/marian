@@ -162,19 +162,21 @@ export class ChartComponent implements OnInit {
       },
       'panels': [ {
         'title': 'Price',
+        'precision': 2,
         'stockGraphs': [ {
           'id': 'g1',
           'valueField': 'close',
-          'comparable': true,
-          'compareField': 'value',
-          'balloonText': '[[title]]:<b> $[[value]]</b>',
-          'compareGraphBalloonText': '[[title]]:<b> $[[value]]</b>'
+          'balloonText': '[[title]]:<b> $[[value]]</b>'
         } ],
         'stockLegend': {
-          'periodValueTextComparing': '[[percents.value.close]]%',
           'periodValueTextRegular': '$[[value.close]]',
           'valueTextRegular': '$[[value]]'
         },
+        'valueAxes': [{
+          'precision': 2,
+          'unit': '$',
+          'unitPosition': 'left'
+        }],
         'trendLines': [ {
           'finalDate': this.selectedStock
             .priceHistory[this.selectedStock.priceHistory.length - 1].date,
@@ -193,11 +195,12 @@ export class ChartComponent implements OnInit {
         'stockGraphs': [ {
           'valueField': 'volume',
           'type': 'column',
-          'showBalloon': false,
-          'fillAlphas': 1
+          'fillAlphas': 1,
+          'balloonText': '[[title]]:<b> [[value]]</b>'
         } ],
         'stockLegend': {
-          'periodValueTextRegular': '[[close]]'
+          'periodValueTextRegular': '[[value.close]]',
+          'valueTextRegular': '[[value]]'
         }
       } ],
       'chartScrollbarSettings': {
@@ -311,15 +314,9 @@ export class ChartComponent implements OnInit {
         } ]
       },
       'panelsSettings': {
-        'precision': 2,
         'usePrefixes': true,
         'fontFamily': '\'Open Sans\', sans-serif'
       },
-      'valueAxesSettings': {
-        'precision': 2,
-        'unit': '$',
-        'unitPosition': 'left'
-      }
     } );
 
     return;
