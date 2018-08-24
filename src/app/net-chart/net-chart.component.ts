@@ -485,6 +485,11 @@ export class NetChartComponent implements OnInit {
           'count': hourCount,
           'label': '1 day'
         }, {
+          'period': 'DD',
+          'selected': this.period === '2 weeks' ? true: false,
+          'count': 14,
+          'label': '2 weeks'
+        }, {
           'period': 'MM',
           'selected': this.period === '1 month' ? true : false,
           'count': 1,
