@@ -236,12 +236,36 @@ export class NetChartComponent implements OnInit {
           .toString() : 'percent') : (i > 0 ? 'close' + (i + 1)
           .toString() : 'close'),
         'comparable': true,
-        'balloonText': this.type === 'percent' ? (
-          '[[title]]:<b> [[value]]%</b>') : (
-          '[[title]]:<b> $[[value]]</b>'),
-        'compareGraphBalloonText': this.type === 'percent' ? (
-          '[[title]]:<b> [[value]]%</b>') : (
-          '[[title]]:<b> $[[value]]</b>')
+        'balloonFunction': this.type === 'percent' ? (
+          (graphDataItem, graph) => graphDataItem.values.value ? (
+            graph.title + ': <b>' + graphDataItem.values.value
+              .toFixed(1) + '%</b>'
+            ) : null
+        ) : (
+          (graphDataItem, graph) => graphDataItem.values.value ? (graphDataItem
+            .values.value < 0 ? (
+              graph.title + ': <b>-$' + parseFloat(graphDataItem.values.value
+                .toString().substr(1)).toFixed(2) + '</b>'
+            ) : (
+              graph.title + ': <b>$' + graphDataItem.values.value.toFixed(2) +
+                '</b>')
+            ) : null
+        ),
+        'compareGraphBalloonFunction': this.type === 'percent' ? (
+          (graphDataItem, graph) => graphDataItem.values.value ? (
+            graph.title + ': <b>' + graphDataItem.values.value
+              .toFixed(1) + '%</b>'
+            ) : null
+        ) : (
+          (graphDataItem, graph) => graphDataItem.values.value ? (graphDataItem
+            .values.value < 0 ? (
+              graph.title + ': <b>-$' + parseFloat(graphDataItem.values.value
+                .toString().substr(1)).toFixed(2) + '</b>'
+            ) : (
+              graph.title + ': <b>$' + graphDataItem.values.value.toFixed(2) +
+                '</b>')
+            ) : null
+        )
       });
     });
 
@@ -350,12 +374,36 @@ export class NetChartComponent implements OnInit {
           'negativeLineColor': '#ff0000',
           'negativeBase': 0,
         },
-        'balloonText': this.type === 'percent' ? (
-          '[[title]]:<b> [[value]]%</b>') : (
-          '[[title]]:<b> $[[value]]</b>'),
-        'compareGraphBalloonText': this.type === 'percent' ? (
-          '[[title]]:<b> [[value]]%</b>') : (
-          '[[title]]:<b> $[[value]]</b>')
+        'balloonFunction': this.type === 'percent' ? (
+          (graphDataItem, graph) => graphDataItem.values.value ? (
+            graph.title + ': <b>' + graphDataItem.values.value
+              .toFixed(1) + '%</b>'
+            ) : null
+        ) : (
+          (graphDataItem, graph) => graphDataItem.values.value ? (graphDataItem
+            .values.value < 0 ? (
+              graph.title + ': <b>-$' + parseFloat(graphDataItem.values.value
+                .toString().substr(1)).toFixed(2) + '</b>'
+            ) : (
+              graph.title + ': <b>$' + graphDataItem.values.value.toFixed(2) +
+                '</b>')
+            ) : null
+        ),
+        'compareGraphBalloonFunction': this.type === 'percent' ? (
+          (graphDataItem, graph) => graphDataItem.values.value ? (
+            graph.title + ': <b>' + graphDataItem.values.value
+              .toFixed(1) + '%</b>'
+            ) : null
+        ) : (
+          (graphDataItem, graph) => graphDataItem.values.value ? (graphDataItem
+            .values.value < 0 ? (
+              graph.title + ': <b>-$' + parseFloat(graphDataItem.values.value
+                .toString().substr(1)).toFixed(2) + '</b>'
+            ) : (
+              graph.title + ': <b>$' + graphDataItem.values.value.toFixed(2) +
+                '</b>')
+            ) : null
+        )
       });
     }
 
@@ -380,12 +428,35 @@ export class NetChartComponent implements OnInit {
         'title': 'Equity',
         'stockGraphs': stockGraphs,
         'stockLegend': {
-          'periodValueText': this.type === 'percent' ? (
-            '[[value.percent]]%') : ('$[[value.close]]'),
-          'valueTextRegular': this.type === 'percent' ? (
-            '[[value]]%') : ('$[[value]]'),
-          'periodValueTextRegular': this.type === 'percent' ? (
-            '[[value.percent]]%') : ('$[[value.close]]')
+          'valueFunction': this.type === 'percent' ? (
+            graphDataItem => graphDataItem.values && (graphDataItem.values
+              .value || graphDataItem.values.value === 0) ? (
+                graphDataItem.values.value.toFixed(1) + '%'
+              ) : (
+                graphDataItem.lastDataItem ? (
+                  graphDataItem.lastDataItem.values.value.toFixed(1) + '%'
+                ) : '0.0%'
+              )
+            ) : (
+              graphDataItem => graphDataItem.values && (graphDataItem.values
+                .value || graphDataItem.values.value === 0) ? (
+                  graphDataItem.values.value < 0 ? (
+                    '-$' + parseFloat(graphDataItem.values.value.toString()
+                    .substr(1)).toFixed(2)
+                  ) : (
+                    '$' + graphDataItem.values.value.toFixed(2)
+                  )
+                ) : (
+                  graphDataItem.lastDataItem ? (
+                    graphDataItem.lastDataItem.values.value < 0 ? (
+                      '-$' + parseFloat(graphDataItem.lastDataItem.values.value
+                        .toString().substr(1)).toFixed(2)
+                    ) : (
+                      '$' + graphDataItem.lastDataItem.values.value.toFixed(2)
+                    )
+                  ) : '$0.00'
+                )
+            )
         },
         'valueAxes': [ {
           'labelFunction': this.type === 'percent' ?
