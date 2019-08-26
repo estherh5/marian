@@ -4,6 +4,8 @@ import cloneDeep from 'lodash/cloneDeep';
 import * as moment from 'moment';
 import { interval } from 'rxjs';
 
+import { environment } from '../environments/environment';
+
 import { Company } from './company';
 import { PriceData } from './pricedata';
 import { Share } from './share';
@@ -425,16 +427,9 @@ export class AppComponent {
         article.related = article.related.filter(item => this.symbols
           .includes(item));
 
-        // Split article URL to get article ID for image request
-        let articleUrl = article.url.split('/');
+        article.image = article.image + `?token=${environment.iexPublicKey}`;
 
-        // Get article thumbnail image URL
-        this.stockService
-          .getStockNewsImage(symbol, articleUrl[articleUrl.length - 1])
-          .subscribe(url => {
-            article.image = url;
-            this.selectedStocks[stockIndex].news.push(article);
-          });
+        this.selectedStocks[stockIndex].news.push(article);
       });
     });
 
