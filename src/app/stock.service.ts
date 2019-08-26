@@ -51,11 +51,6 @@ export class StockService {
     return this.http.get(url);
   }
 
-  // Get URL for stock article thumbnail image
-  getStockNewsImage(symbol: string, articleId: string): Observable<any> {
-    const url = `https://pause-app-api.herokuapp.com/api/marian/image/` +
-      `${symbol}/${articleId}`;
-
   // Get today's price data for specified stock, per minute
   getTodayData(symbol: string): Observable<any> {
     const url = `${this.iexUrl}/stock/${symbol}/intraday-prices?token=` +
