@@ -315,7 +315,7 @@ export class AppComponent {
         let apiData = Object.keys(data['Time Series (Daily)'])
           .map(date => ({
             // Set date time to 12:00 AM EST
-            date: new Date(date + ' 0:00 GMT-4'),
+            date: new Date(`${date.replace(/-/g, '/')} 00:00 GMT-4`),
 
             close: parseFloat(data['Time Series (Daily)'][date]['4. close']),
 
@@ -345,10 +345,8 @@ export class AppComponent {
             if (datapoint.close) {
               apiData.push(<PriceData>({
                 // Format date/time as EST
-                date: new Date(datapoint.date.slice(0, 4) + '-' +
-                  datapoint.date.slice(4, 6) + '-' +
-                  datapoint.date.slice(6, 8) + ' ' + datapoint.minute +
-                  ' GMT-4'),
+                date: new Date(`${datapoint.date.replace(/-/g, '/')} ` +
+                  `${datapoint.minute} GMT-4`),
 
                 close: datapoint.close,
 
@@ -362,10 +360,8 @@ export class AppComponent {
             else {
               apiData.push(<PriceData>({
                 // Format date/time as EST
-                date: new Date(datapoint.date.slice(0, 4) + '-' +
-                  datapoint.date.slice(4, 6) + '-' +
-                  datapoint.date.slice(6, 8) + ' ' + datapoint.minute +
-                  ' GMT-4'),
+                date: new Date(`${datapoint.date.replace(/-/g, '/')} ` +
+                  `${datapoint.minute} GMT-4`),
 
                 close: apiData[apiData.length - 1].close,
 
