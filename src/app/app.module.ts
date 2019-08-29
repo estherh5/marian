@@ -13,6 +13,7 @@ import { CompanyComponent } from './portfolio/company/company.component';
 import { CalculatorComponent } from
   './portfolio/calculator/calculator.component';
 import { NetChartComponent } from './net-chart/net-chart.component';
+import { FooterComponent } from './footer/footer.component';
 
 @NgModule({
   declarations: [
@@ -23,7 +24,8 @@ import { NetChartComponent } from './net-chart/net-chart.component';
     NewsComponent,
     CompanyComponent,
     CalculatorComponent,
-    NetChartComponent
+    NetChartComponent,
+    FooterComponent
   ],
   imports: [
     BrowserModule,
