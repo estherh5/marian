@@ -5,22 +5,28 @@
     <!-- Link to collapse/expand stock -->
     <a (click)="selectedStock.isCollapsed = !selectedStock.isCollapsed" title="Collapse stock">
       <!-- Collapsed/expanded caret -->
-      <i [ngClass]="{'fa-caret-right': selectedStock.isCollapsed, 'fa-caret-down': !selectedStock.isCollapsed, 'fas': true, 'w-15': true}"></i>
+      <i [ngClass]="{'fa-caret-right': selectedStock.isCollapsed, 'fa-caret-down': !selectedStock.isCollapsed, 'fas': true, 'w-15': true, 'mr-5': true}"></i>
 
-      {{ selectedStock.name }} ({{ selectedStock.symbol }}):
+      <span class="stock-name-price-container">
+        <span class="mr-5">
+          <!-- Stock name and symbol -->
+          {{ selectedStock.name }} ({{ selectedStock.symbol }}):
+        </span>
 
-      <span *ngIf="selectedStock.isRising !== null"
-        [ngClass]="{'up': selectedStock.isRising, 'down': !selectedStock.isRising, 'relative': true}">
+        <span *ngIf="selectedStock.isRising !== null" [ngClass]="{'up': selectedStock.isRising, 'down': !selectedStock.isRising, 'price-container': true}">
           <!-- Stock price -->
           {{ '$' + selectedStock.price.toFixed(2) }}
-          <span class="dollar-change">
-            <!-- Price change in USD -->
-            {{ selectedStock.change > 0 ? '+ $' + selectedStock.change.toFixed(2) : '- $' + selectedStock.change.toFixed(2).split('-')[1] }}
+          <span *ngIf="selectedStock.isRising !== null" [ngClass]="{'up': selectedStock.isRising, 'down': !selectedStock.isRising, 'ml-5': true, 'dollar-change-container': true}">
+            <span>
+              <!-- Price change in USD -->
+              {{ selectedStock.change > 0 ? '+ $' + selectedStock.change.toFixed(2) : '- $' + selectedStock.change.toFixed(2).split('-')[1] }}
+            </span>
+            <span>
+              <!-- Price change % -->
+              {{ selectedStock.changePercent > 0 ? '+ ' + selectedStock.changePercent.toFixed(2) + '%' : '- ' + selectedStock.changePercent.toFixed(2).split('-')[1] + '%' }}
+            </span>
           </span>
-          <span class="percent-change">
-            <!-- Price change % -->
-            {{ selectedStock.changePercent > 0 ? '+ ' + selectedStock.changePercent.toFixed(2) + '%' : '- ' + selectedStock.changePercent.toFixed(2).split('-')[1] + '%' }}
-          </span>
+        </span>
       </span>
     </a>
 
