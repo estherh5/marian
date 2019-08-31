@@ -109,7 +109,7 @@ export class NetChartComponent implements OnInit {
       // Filter price history to prices from oldest share's purchase date on
       stock.priceHistory = stock.priceHistory
         .filter(price => price.date.getTime() >= new Date(stock.shares[0]
-          .date + 'GMT' + -(new Date().getTimezoneOffset()/60)).getTime());
+          .date + ' GMT' + -(new Date().getTimezoneOffset()/60)).getTime());
 
       /* Copy price history to have original stock prices available for
       calculations */
@@ -149,7 +149,7 @@ export class NetChartComponent implements OnInit {
           /* Set stock close price to net equity for each price on or after
           subsequent shares' purchase dates */
           else if (ind > 0 && price.date.getTime() >= new Date(share.date +
-            'GMT' + -(new Date().getTimezoneOffset()/60)).getTime()) {
+            ' GMT' + -(new Date().getTimezoneOffset()/60)).getTime()) {
               price.close = price.close +
                 (priceHistoryCopy[index].close * share.number) -
                 (parseFloat(share.price) * share.number);
