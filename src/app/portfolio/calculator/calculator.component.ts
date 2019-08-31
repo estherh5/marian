@@ -27,8 +27,9 @@ export class CalculatorComponent implements OnInit {
     if (type === 'date') {
       share.dateError = '';
 
-      if (new Date(event + ' 9:30 GMT' + -(new Date().getTimezoneOffset()/60))
-        .getTime() > this.selectedStock.priceHistory[this.selectedStock
+      if (new Date(`${event.replace(/-/g, '/')} 09:30 GMT-` +
+        `${new Date().getTimezoneOffset()/60}`).getTime() >
+        this.selectedStock.priceHistory[this.selectedStock
         .priceHistory.length - 1].date.getTime()) {
           share.dateError = 'Purchase date must be before the latest market ' +
             'close.';
@@ -36,7 +37,7 @@ export class CalculatorComponent implements OnInit {
 
         // Otherwise, set share date as input value
         else {
-          share.date = event;
+          share.date = event.replace(/-/g, '/');
         }
     }
 
