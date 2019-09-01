@@ -1,0 +1,24 @@
+<div id="site-menu-icon-container">
+  <img id="site-menu-icon" title="Toggle site menu" alt="Site menu icon" src="{{ 'https://crystalprism.io/images/site-menu-icon' + (siteMenuOpen ? '.svg' : '-shadow.svg') }}" (click)="siteMenuOpen = !siteMenuOpen">
+</div>
+
+<table id="site-menu" [ngClass]="{'closed': !siteMenuOpen, 'opened': siteMenuOpen}">
+  <tbody>
+
+    <tr id="site-menu-spacer-row"></tr>
+
+    <tr *ngFor="let project of projects" class="site-menu-row" attr.data-link="{{ project.link }}" (click)="goToProject($event)">
+      <td class="site-menu-image-cell" attr.data-link="{{ project.link }}">
+        <img class="site-menu-image" alt="{{ project.title + 'icon' }}" title="{{ project.title }}" attr.data-link="{{ project.link }}" src="{{ project.favicon }}">
+      </td>
+      <td class="site-menu-text-cell" attr.data-link="{{ project.link }}">
+        <div class="site-menu-text" title="{{ project.title }}" attr.data-link="{{ project.link }}">{{ project.title }}</div>
+      </td>
+    </tr>
+
+  </tbody>
+</table>
+
+<h1 *ngIf="!isLandingPage" id="title">
+  <a href=".">Marian</a>
+</h1>

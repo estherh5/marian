@@ -1,6 +1,6 @@
-<h1 *ngIf="!isLandingPage">
-  <a id="title" href=".">Marian</a>
-</h1>
+<app-header
+  [isLandingPage]="isLandingPage">
+</app-header>
 
 <app-search
   [isLandingPage]="isLandingPage"
