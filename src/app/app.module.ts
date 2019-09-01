@@ -14,6 +14,7 @@ import { CalculatorComponent } from
   './portfolio/calculator/calculator.component';
 import { NetChartComponent } from './net-chart/net-chart.component';
 import { FooterComponent } from './footer/footer.component';
+import { HeaderComponent } from './header/header.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +26,8 @@ import { FooterComponent } from './footer/footer.component';
     CompanyComponent,
     CalculatorComponent,
     NetChartComponent,
-    FooterComponent
+    FooterComponent,
+    HeaderComponent
   ],
   imports: [
     BrowserModule,

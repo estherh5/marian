@@ -1,8 +1,8 @@
-.p-10 {
-  padding: 10px;
-}
-
 .main {
+  max-width: 800px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  margin: auto;
   background-color: #ffffff;
 }
 
@@ -60,6 +60,7 @@
 
 .landing {
   height: 91vh;
+  padding: 10px;
 }
 
 .search-bar-container {
