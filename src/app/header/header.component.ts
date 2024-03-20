@@ -10,7 +10,7 @@ export class HeaderComponent implements OnInit {
 
   siteMenuOpen: boolean = false;
 
-  projects: Array = [
+  projects: Array<object> = [
     {link: 'https://crystalprism.io/', title: 'Home',
       favicon: 'https://crystalprism.io/favicon.ico'},
     {link: 'https://crystalprism.io/timespace/', title: 'Timespace',
@@ -58,6 +58,14 @@ export class HeaderComponent implements OnInit {
   }
 
   goToProject($event: Event): void {
-    return window.location = $event.target.dataset.link;
+    // If event target not an HTMLButtonElement, exit
+    if (!($event.target instanceof HTMLElement)) {
+      return;
+    }
+
+    // Set window location as button link
+    const win: Window = window;
+    win.location.href = $event.target.dataset.link;
+    return;
   }
 }
