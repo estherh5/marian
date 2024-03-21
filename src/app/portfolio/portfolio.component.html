@@ -15,7 +15,7 @@
 
         <span *ngIf="selectedStock.isRising !== null" [ngClass]="{'up': selectedStock.isRising, 'down': !selectedStock.isRising, 'price-container': true}">
           <!-- Stock price -->
-          {{ '$' + selectedStock?.price.toFixed(2) }}
+          {{ '$' + selectedStock?.price?.toFixed(2) }}
           <span *ngIf="selectedStock.isRising !== null" [ngClass]="{'up': selectedStock.isRising, 'down': !selectedStock.isRising, 'ml-5': true, 'dollar-change-container': true}">
             <span>
               <!-- Price change in USD -->

@@ -26,7 +26,7 @@ export class NetChartComponent implements OnInit {
 
   buttonText: string = 'Toggle $';
 
-  period: string = '1 day';
+  period: string = '1 week';
 
   type: string = 'percent';
 
@@ -71,17 +71,6 @@ export class NetChartComponent implements OnInit {
     // Define colors that should be used for each stock line in the chart
     const colors = ['#FCD202', '#0D8ECF', '#2A0CD0', '#CD0D74', '#CC0000',
       '#00CC00', '#0000CC', '#DDDDDD', '#999999', '#333333', '#990000'];
-
-    // Set count for number of hours to display in 1 day price view
-    let hourCount;
-
-    /* Set count to full 6.5 hour market day if current day is weekend, weekday
-    morning before 9:30 AM EST or weekeday afternoon after 4:00 PM EST, or set
-    to number of hours' difference between current time and 9:30 AM EST */
-    [0, 6].includes(new Date().getDay()) || (moment().utcOffset(-240).hours() +
-      moment().utcOffset(-240).minutes()/60 < 9.5) || (moment().utcOffset(-240)
-      .hours() > 16) ? hourCount = 6.5 : hourCount = moment().utcOffset(-240)
-        .hours() + (moment().utcOffset(-240).minutes()/60) - 9.5;
 
     stocks.map(stock => {
       /* Filter out shares that have errors or are missing purchase date, share
@@ -480,10 +469,10 @@ export class NetChartComponent implements OnInit {
       },
       'periodSelector': {
         'periods': [ {
-          'period': 'hh',
-          'selected': this.period === '1 day' ? true : false,
-          'count': hourCount,
-          'label': '1 day'
+          'period': 'DD',
+          'selected': this.period === '1 week' ? true: false,
+          'count': 7,
+          'label': '1 week'
         }, {
           'period': 'DD',
           'selected': this.period === '2 weeks' ? true: false,

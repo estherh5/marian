@@ -53,53 +53,12 @@ export class ChartComponent implements OnInit {
   // Create price history chart
   createChart(): void {
     // Set initial date for trendline's initial value
-    let initialDate;
-
-    // Set initial date to last market day based on today's day of week
-    new Date().getDay() === 1 && moment().utcOffset(-240).hours() +
-      moment().utcOffset(-240).minutes()/60 < 9.5 ? (
-        initialDate = moment().utcOffset(-240).date(new Date().getDate() - 4)
-          .hours(0).minutes(0).seconds(0).milliseconds(0).toDate()
-      ) : new Date().getDay() === 1 || new Date().getDay() === 0 ? (
-        initialDate = moment().utcOffset(-240).date(new Date().getDate() - 3)
-          .hours(0).minutes(0).seconds(0).milliseconds(0).toDate()
-      ) : new Date().getDay() === 6 || moment().utcOffset(-240).hours() +
-        moment().utcOffset(-240).minutes()/60 < 9.5 ? (
-          initialDate = moment().utcOffset(-240).date(new Date().getDate() - 2)
-            .hours(0).minutes(0).seconds(0).milliseconds(0).toDate()
-      ) : (
-        initialDate = moment().utcOffset(-240).date(new Date().getDate() - 1)
-          .hours(0).minutes(0).seconds(0).milliseconds(0).toDate()
-      );
+    const initialDate = moment().utcOffset(-240).date(new Date().getDate() - 7)
+      .hours(0).minutes(0).seconds(0).milliseconds(0).toDate();
 
     // Set initial value for trendline to last market day's close price
-    let initialValue = this.selectedStock.priceHistory
+    const initialValue = this.selectedStock.priceHistory
       .find(obj => obj.date.getTime() == initialDate.getTime()).close;
-
-    // Set initial date that will display on trendline
-    let lineInitialDate;
-
-    /* Set initial date to current market day at 9:30 AM EST or last market
-    day at 9:30 AM EST if weekend or morning before 9:30 AM EST */
-    new Date().getDay() === 1 && moment().utcOffset(-240).hours() + moment()
-      .utcOffset(-240).minutes()/60 < 9.5 ? (
-        lineInitialDate = moment().utcOffset(-240).date(new Date()
-          .getDate() - 3).hours(9).minutes(30).seconds(0).milliseconds(0)
-          .toDate()
-      ) : new Date().getDay() === 0 ? (
-        lineInitialDate = moment().utcOffset(-240).date(new Date()
-          .getDate() - 2).hours(9).minutes(30).seconds(0).milliseconds(0)
-          .toDate()
-      ) :
-      new Date().getDay() === 6 || moment().utcOffset(-240).hours() +
-        moment().utcOffset(-240).minutes()/60 < 9.5 ? (
-          lineInitialDate = moment().utcOffset(-240).date(new Date()
-            .getDate() - 1).hours(9).minutes(30).seconds(0)
-            .milliseconds(0).toDate()
-        ) : (
-          lineInitialDate = moment().utcOffset(-240).date(new Date().getDate())
-            .hours(9).minutes(30).seconds(0).milliseconds(0).toDate()
-        );
 
     // Set stock events to price history values with dividend prices specified
     let stockEvents: Array<object> = this.selectedStock.priceHistory
@@ -112,17 +71,6 @@ export class ChartComponent implements OnInit {
       'description': 'Dividend:<b> $' + parseFloat(stock['dividend'])
         .toFixed(2) + '</b>'
     }));
-
-    // Set count for number of hours to display in 1 day price view
-    let hourCount;
-
-    /* Set count to full 6.5 hour market day if current day is weekend, weekday
-    morning before 9:30 AM EST or weekeday afternoon after 4:00 PM EST, or set
-    to number of hours' difference between current time and 9:30 AM EST */
-    [0, 6].includes(new Date().getDay()) || (moment().utcOffset(-240).hours() +
-      moment().utcOffset(-240).minutes()/60 < 9.5) || (moment().utcOffset(-240)
-      .hours() > 16) ? hourCount = 6.5 : hourCount = moment().utcOffset(-240)
-        .hours() + (moment().utcOffset(-240).minutes()/60) - 9.5;
 
     // Create price history amCharts stock chart with specified options
     this.chart = this.AmCharts.makeChart(this.chartdiv.nativeElement.id, {
@@ -182,7 +130,7 @@ export class ChartComponent implements OnInit {
             .priceHistory[this.selectedStock.priceHistory.length - 1].date,
           'finalValue': this.selectedStock
             .priceHistory[this.selectedStock.priceHistory.length - 1].close,
-          'initialDate': lineInitialDate,
+          'initialDate': initialDate,
           'initialValue': initialValue,
           'lineColor': this.selectedStock.priceHistory[this.selectedStock
             .priceHistory.length - 1].close > initialValue ? '#05d405' :
@@ -217,10 +165,10 @@ export class ChartComponent implements OnInit {
       },
       'periodSelector': {
         'periods': [ {
-          'period': 'hh',
-          'count': hourCount,
+          'period': 'DD',
+          'count': 7,
           'selected': true,
-          'label': '1 day'
+          'label': '1 week'
         }, {
           'period': 'DD',
           'count': 14,
@@ -250,53 +198,13 @@ export class ChartComponent implements OnInit {
             /* Update chart trendline when period is changed if chart and its
             panels are rendered */
             this.AmCharts.updateChart(this.chart, () => {
-              // Set initial value for trendline
-              let startValue;
-
-              // If 1 day view is selected, set trendline based on today's date
-              if (event.predefinedPeriod === 'hh') {
-                // Set initial date for trendline's initial value
-                let startDate;
-
-                /* Set initial date to last market day based on today's day of
-                week */
-                new Date().getDay() === 1 && moment().utcOffset(-240).hours() +
-                  moment().utcOffset(-240).minutes()/60 < 9.5 ? (
-                    startDate = moment().utcOffset(-240).date(new Date()
-                      .getDate() - 4).hours(0).minutes(0).seconds(0)
-                      .milliseconds(0).toDate()
-                  ) : new Date().getDay() === 1 || new Date().getDay() === 0 ? (
-                    startDate = moment().utcOffset(-240).date(new Date()
-                      .getDate() - 3).hours(0).minutes(0).seconds(0)
-                      .milliseconds(0).toDate()
-                  ) : new Date().getDay() === 6 || moment().utcOffset(-240)
-                    .hours() + moment().utcOffset(-240).minutes()/60 < 9.5 ? (
-                      startDate = moment().utcOffset(-240).date(new Date()
-                        .getDate() - 2).hours(0).minutes(0).seconds(0)
-                        .milliseconds(0).toDate()
-                  ) : (
-                    startDate = moment().utcOffset(-240).date(new Date()
-                      .getDate() - 1).hours(0).minutes(0).seconds(0)
-                      .milliseconds(0).toDate()
-                  );
-
-                /* Set initial value for trendline to last market day's close
-                price */
-                startValue = this.selectedStock.priceHistory.find(obj => obj
-                  .date.getTime() == startDate.getTime()).close;
-
-              }
-
-              /* If other period view is selected, set trendline starting value
-              to closest price history date (giving range of +/- 2 days because
-              of weekends/holidays) */
-              else {
-                startValue = this.selectedStock.priceHistory.find(obj => obj
-                  .date.getDate() >= event.startDate.getDate() - 2 && obj
-                  .date.getDate() <= event.startDate.getDate() + 2 && obj
-                  .date.getMonth() === event.startDate.getMonth() && obj.date
-                  .getFullYear() === event.startDate.getFullYear()).close;
-              }
+              /* Set initial value for trendline to closest price history date
+              (giving range of +/- 2 days because of weekends/holidays) */
+              const startValue = this.selectedStock.priceHistory.find(obj => obj
+                .date.getDate() >= event.startDate.getDate() - 2 && obj
+                .date.getDate() <= event.startDate.getDate() + 2 && obj
+                .date.getMonth() === event.startDate.getMonth() && obj.date
+                .getFullYear() === event.startDate.getFullYear()).close;
 
               this.chart.panels[0].trendLines = [{
                 'finalDate': event.endDate,
