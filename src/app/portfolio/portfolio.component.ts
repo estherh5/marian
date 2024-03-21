@@ -47,4 +47,6 @@ export class PortfolioComponent implements OnInit {
   removeStock(stock: Stock): void {
     return this.stockRemoved.emit(stock);
   }
+
+  Math = Math;
 }

@@ -1,11 +1,10 @@
 export class Company {
-  symbol: string;
-  companyName: string;
-  exchange: string;
-  industry: string;
-  website: string;
-  description: string;
-  CEO: string;
-  issueType: string;
-  sector: string;
+  Symbol: string;
+  Description: string;
+  Name: string;
+  PERatio: string;
+  Exchange: string;
+  Sector: string;
+  Industry: string;
+  AssetType: string;
 }

@@ -11,7 +11,6 @@ export class Stock {
   price: number;
   change: number;
   changePercent: number;
-  peRatio: number;
   priceHistory: PriceData[];
   company: Company;
   news: Article[];

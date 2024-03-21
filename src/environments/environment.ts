@@ -4,8 +4,8 @@
 
 export const environment = {
   production: false,
-  alphaPublicKey: '80PCYQ2IQ35ORBRZ',
-  iexPublicKey: 'pk_58b68fd0dedb458aa02a2aa320b4d4a1',
+  alphaPublicKey: 'DYJJKLWMYKO5I3YY',
+  finnHubPublicKey: 'cntghmhr01qres1dbepgcntghmhr01qres1dbeq0',
 };
 
 /*

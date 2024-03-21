@@ -9,9 +9,12 @@ import { Company } from '../../company';
 })
 export class CompanyComponent implements OnInit {
   @Input() company: Company;
-  @Input() peRatio: number;
 
   constructor() { }
 
   ngOnInit(): void { }
+
+  toTitleCase(str: string): string {
+    return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+  }
 }

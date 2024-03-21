@@ -19,11 +19,11 @@ export class NewsComponent implements OnInit {
 
   ngOnInit(): void { }
 
-  /* Convert article's published time (ISO string) to number of
+  /* Convert article's published time (UNIX timestamp) to number of
   minutes/hours/days ago */
-  toTimeAgo(iso: string): string {
+  toTimeAgo(unix: number): string {
     const now = new Date().getTime();
-    const articleTime = new Date(iso).getTime();
+    const articleTime = new Date(unix * 1000).getTime();
 
     // Get difference between now and article's published time in hours
     const difference = (now - articleTime)/(1000 * 3600);

@@ -3,39 +3,33 @@
   <h1 class="section-title">About</h1>
 
   <div id="description">
-    {{ company.description }}
+    {{ company.Description }}
   </div>
 
   <div id="company-info">
-    <!-- Company's CEO -->
-    <div *ngIf="company.CEO" class="item" title="CEO">
-      {{ company.CEO }}
+    <!-- Company's name -->
+    <div *ngIf="company.Name" class="item" title="Name">
+      {{ company.Name }}
     </div>
 
     <!-- Company's price-earnings ratio -->
-    <div *ngIf="peRatio" class="item" title="Price/Earnings Ratio">
-      P/E = {{ peRatio }}
+    <div *ngIf="company.PERatio" class="item" title="Price/Earnings Ratio">
+      P/E = {{ company.PERatio }}
     </div>
 
     <!-- Company's exchange market -->
-    <div *ngIf="company.exchange" class="item" title="Exchange">
-      {{ company.exchange }}
+    <div *ngIf="company.Exchange" class="item" title="Exchange">
+      {{ company.Exchange }}
     </div>
 
     <!-- Company's sector and industry -->
-    <div *ngIf="company.sector" class="item" title="Sector">
-      {{ company.sector }} | {{ company.industry }}
+    <div *ngIf="company.Sector" class="item" title="Sector">
+      {{ toTitleCase(company.Sector) }} | {{ toTitleCase(company.Industry) }}
     </div>
 
-    <!-- Company's stock issue type -->
-    <div *ngIf="company.issueType" class="item" title="Issue Type">
-      {{ company.issueType }}
-    </div>
-
-    <!-- Company's website -->
-    <div *ngIf="company.website" class="item" title="Website">
-      <a href="{{ company.website }}" target="_blank">{{ company.website }}</a>
-    </div>
+    <!-- Company's stock asset type -->
+    <div *ngIf="company.AssetType" class="item" title="Asset Type">
+      {{ company.AssetType }}
   </div>
 
 </div>
