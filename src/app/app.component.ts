@@ -58,7 +58,6 @@ export class AppComponent {
               already been acquired */
               if (stock.priceHistory) {
                 this.getCurrentPrice(stock.symbol);
-                this.getLastMinuteData(stock.symbol);
               }
 
             });
@@ -129,18 +128,16 @@ export class AppComponent {
       price: null,
       change: null,
       changePercent: null,
-      peRatio: null,
       priceHistory: [],
       company: {
-        symbol: '',
-        companyName: '',
-        exchange: '',
-        industry: '',
-        website: '',
-        description: '',
-        CEO: '',
-        issueType: '',
-        sector: ''
+        Symbol: null,
+        Description: null,
+        Name: null,
+        PERatio: null,
+        Exchange: null,
+        Sector: null,
+        Industry: null,
+        AssetType: null,
       },
       news: [],
       isCollapsed: false,
@@ -204,26 +201,8 @@ export class AppComponent {
     let stockIndex = this.selectedStocks
       .findIndex(stock => stock.symbol === symbol);
 
-    // Dictionary of stock issue type abbreviations to names
-    let issueTypes = {
-      'ad': 'American Depository Receipt (ADR)',
-      're': 'Real Estate Investment Trust (REIT)',
-      'ce': 'Closed end fund (Stock and Bond Fund)',
-      'si': 'Secondary Issue',
-      'lp': 'Limited Partnerships',
-      'cs': 'Common Stock',
-      'et': 'Exchange Traded Fund (ETF)'
-    }
-
     this.stockService.getCompanyData(symbol).subscribe(data => {
       this.selectedStocks[stockIndex].company = data;
-
-      // Replace stock issue type abbreviation with name if specified
-      if (this.selectedStocks[stockIndex].company.issueType) {
-        this.selectedStocks[stockIndex].company
-          .issueType = issueTypes[this.selectedStocks[stockIndex].company
-          .issueType];
-      }
 
       // Scroll to selected stock
       document.getElementById(symbol).scrollIntoView();
@@ -238,62 +217,11 @@ export class AppComponent {
     let stockIndex = this.selectedStocks
       .findIndex(stock => stock.symbol === symbol);
 
-    /* Store latest price, change (in $ and %), and price-earnings ratio if
-    returned from service */
+    /* Store latest price and change (in $ and %) */
     this.stockService.getCurrentPrice(symbol).subscribe(data => {
-      data['latestPrice'] ? this.selectedStocks[stockIndex]
-        .price = data['latestPrice'] : null;
-
-      data['change'] ? this.selectedStocks[stockIndex]
-        .change = data['change'] : null;
-
-      data['changePercent'] ? this.selectedStocks[stockIndex]
-        .changePercent = data['changePercent'] : null;
-
-      data['peRatio'] ? this.selectedStocks[stockIndex]
-        .peRatio = data['peRatio'] : null;
-    });
-
-    return;
-  }
-
-  // Get the last minute's price data for specified stock
-  getLastMinuteData(symbol: string): void {
-    // Find index of specified stock in selected stocks list
-    let stockIndex = this.selectedStocks
-      .findIndex(stock => stock.symbol === symbol);
-
-    this.stockService.getLastMinuteData(symbol).subscribe(data => {
-      // Format date/time as EST
-      data[0].date = new Date(data[0].date.slice(0, 4) + '-' +
-        data[0].date.slice(4, 6) + '-' + data[0].date.slice(6, 8) + ' ' +
-        data[0].minute + ' GMT-4');
-
-      /* Add price data to specified stock's price history if date/time is not
-      already in history and if close value exists; otherwise, use previous
-      price datapoint's data */
-      this.selectedStocks[stockIndex].priceHistory
-        .find(price => price.date === data[0].date) ? null :
-        data[0].close ? this.selectedStocks[stockIndex].priceHistory
-          .push(<PriceData>({
-            date: data[0].date,
-            close: data[0].close,
-            volume: data[0].volume,
-            dividend: 0
-          })) : this.selectedStocks[stockIndex].priceHistory
-            .push(<PriceData>({
-              date: data[0].date,
-              close: this.selectedStocks[stockIndex]
-                .priceHistory[this.selectedStocks[stockIndex].priceHistory
-                .length - 1].close,
-              volume: this.selectedStocks[stockIndex]
-                .priceHistory[this.selectedStocks[stockIndex].priceHistory
-                .length - 1].volume,
-              dividend: 0
-            }));
-
-      // Trigger update of specified stock's price chart
-      this.selectedStocks[stockIndex].updateChart = true;
+      this.selectedStocks[stockIndex].price = data.c;
+      this.selectedStocks[stockIndex].change = data.d;
+      this.selectedStocks[stockIndex].changePercent = data.dp;
     });
 
     return;
@@ -320,89 +248,46 @@ export class AppComponent {
             close: parseFloat(data['Time Series (Daily)'][date]['4. close']),
 
             volume: parseFloat(data['Time Series (Daily)'][date]
-              ['6. volume']),
+              ['5. volume']),
 
-            dividend: parseFloat(data['Time Series (Daily)'][date]
-              ['7. dividend amount'])
+            dividend: 0
           })).reverse();
-
-        /* Remove last day's worth of data, as it will be replaced with
-        minutely data */
-        apiData.pop();
 
         /* Determine if stock price is rising by comparing current price to
         previous day's market close price */
-        this.selectedStocks[stockIndex].price > apiData[apiData.length - 1]
-          .close ? (this.selectedStocks[stockIndex].isRising = true) :
-          (this.selectedStocks[stockIndex].isRising = false);
+        this.selectedStocks[stockIndex].isRising = this.selectedStocks[stockIndex].price > apiData[apiData.length - 1].close;
 
-        // Get price history for latest market day
-        this.stockService.getTodayData(symbol).subscribe(data => {
+        // Set stock data for specified stock
+        this.selectedStocks[stockIndex].priceHistory = apiData;
 
-          data.map((datapoint, index) => {
-            /* Get date, close, volume, and dividend data from service if close
-            value is given for datapoint */
-            if (datapoint.close) {
-              apiData.push(<PriceData>({
-                // Format date/time as EST
-                date: new Date(`${datapoint.date.replace(/-/g, '/')} ` +
-                  `${datapoint.minute} GMT-4`),
-
-                close: datapoint.close,
-
-                volume: datapoint.volume,
-
-                dividend: 0
-              }));
-            }
-
-            // Otherwise, use data from last datapoint
-            else {
-              apiData.push(<PriceData>({
-                // Format date/time as EST
-                date: new Date(`${datapoint.date.replace(/-/g, '/')} ` +
-                  `${datapoint.minute} GMT-4`),
-
-                close: apiData[apiData.length - 1].close,
-
-                volume: apiData[apiData.length - 1].volume,
-
-                dividend: 0
-              }));
-            }
-          });
-
-          // Set stock data for specified stock
-          this.selectedStocks[stockIndex].priceHistory = apiData;
-
-          // Store stock data in session storage for loading if server errors
-          sessionStorage.setItem(symbol, JSON.stringify(this
-            .selectedStocks[stockIndex].priceHistory));
-        });
+        // Trigger update of specified stock's price chart
+        this.selectedStocks[stockIndex].updateChart = true;
+        
+        // Store stock data in session storage for loading if server errors
+        sessionStorage.setItem(symbol, JSON.stringify(this
+          .selectedStocks[stockIndex].priceHistory));
       }
 
       /* If service sends error that maximum number of requests have been made,
-      use session stored data for stock if available or resend request after 30
-      seconds */
+      use session stored data for stock if available */
       else {
-        sessionStorage.getItem(symbol) ? this.selectedStocks[stockIndex]
-          .priceHistory = JSON.parse(sessionStorage.getItem(symbol))
+        if (sessionStorage.getItem(symbol)) {
+          this.selectedStocks[stockIndex].priceHistory = JSON.parse(sessionStorage.getItem(symbol))
             .map(stock => ({
               date: new Date(stock['date']),
               close: stock['close'],
               volume: stock['volume'],
               dividend: stock['dividend']
-            })) : setTimeout(this.getPriceHistory(symbol), 30000);
+            }));
+        }
 
         /* Determine if stock price is rising by comparing current price to
         previous day's market close price */
-        sessionStorage.getItem(symbol) ? (
-          this.selectedStocks[stockIndex].price > this
-          .selectedStocks[stockIndex].priceHistory[this
-          .selectedStocks[stockIndex].priceHistory.length - 2].close ?
-          this.selectedStocks[stockIndex].isRising = true :
-          this.selectedStocks[stockIndex].isRising = false
-        ) : null;
+        if (sessionStorage.getItem(symbol)) {
+          this.selectedStocks[stockIndex].isRising = this.selectedStocks[stockIndex].price > this
+            .selectedStocks[stockIndex].priceHistory[this
+            .selectedStocks[stockIndex].priceHistory.length - 2].close;
+        }
       }
     });
 
@@ -416,20 +301,30 @@ export class AppComponent {
       .findIndex(stock => stock.symbol === symbol);
 
     this.stockService.getStockNews(symbol).subscribe(data => {
-      data.map(article => {
-        /* Set related stocks list to an array and filter out symbols that are
-        not in the stock search array */
-        article.related = article.related.split(',');
-        article.related = article.related.filter(item => this.symbols
-          .includes(item));
+      if (data.length) {
+        data.slice(0, 10).map(article => {
+          /* Set related stocks list to an array and filter out symbols that are
+          not in the stock search array */
+          article.related = article.related.split().filter(item => this.symbols
+            .includes(item));
 
-        article.image = article.image + `?token=${environment.iexPublicKey}`;
+          this.selectedStocks[stockIndex].news.push(article);
+        });
 
-        this.selectedStocks[stockIndex].news.push(article);
-      });
+        // Store stock news in session storage for loading if server errors
+        sessionStorage.setItem(`${symbol}-news`, JSON.stringify(this
+          .selectedStocks[stockIndex].news));
+      }
+      
+      /* If service sends error that maximum number of requests have been made,
+      use session stored data for news if available */
+      else if (sessionStorage.getItem(`${symbol}-news`)) {
+          this.selectedStocks[stockIndex].news = JSON.parse(sessionStorage.getItem(`${symbol}-news`));
+      } else {
+        this.selectedStocks[stockIndex].news = [];
+      }
+      return;
     });
-
-    return;
   }
 
   // Reset update net chart value after net equity chart has been updated
