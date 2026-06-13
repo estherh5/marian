@@ -1,20 +1,16 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 import { Company } from '../../company';
 
 @Component({
   selector: 'app-company',
   templateUrl: './company.component.html',
-  styleUrls: ['./company.component.css']
+  styleUrls: ['./company.component.css'],
 })
-export class CompanyComponent implements OnInit {
-  @Input() company: Company;
-
-  constructor() { }
-
-  ngOnInit(): void { }
+export class CompanyComponent {
+  readonly company = input.required<Company>();
 
   toTitleCase(str: string): string {
-    return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+    return str.toLowerCase().replace(/\b\w/g, (s) => s.toUpperCase());
   }
 }

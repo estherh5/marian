@@ -1,3 +1,21 @@
+[build]
+  command = "npm run build"
+  publish = "dist/marian/browser"
+  functions = "netlify/functions"
+
+# `netlify dev` (run via `npm start`) serves the Angular app and the proxy
+# functions together, loading secrets from a local .env file.
+[dev]
+  command = "npm run serve"
+  targetPort = 4200
+
+# Friendly /api/* paths for the serverless proxy functions.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# SPA fallback — must come AFTER the /api/* rule so it doesn't swallow it.
 [[redirects]]
   from = "/*"
   to = "/index.html"

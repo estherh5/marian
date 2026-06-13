@@ -1,75 +1,51 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 
 import { Article } from '../../article';
+import { StockSelection } from '../../stock';
 import { STOCKS } from '../../stocks';
 
 @Component({
   selector: 'app-news',
   templateUrl: './news.component.html',
-  styleUrls: ['./news.component.css']
+  styleUrls: ['./news.component.css'],
 })
-export class NewsComponent implements OnInit {
-  @Input() news: Article[];
+export class NewsComponent {
+  readonly news = input.required<Article[]>();
 
-  @Output() stockSelected: EventEmitter<any> = new EventEmitter<any>();
+  readonly stockSelected = output<StockSelection>();
 
-  stocks: Array<any> = STOCKS;
+  private readonly stocks = STOCKS;
 
-  constructor() { }
-
-  ngOnInit(): void { }
-
-  /* Convert article's published time (UNIX timestamp) to number of
-  minutes/hours/days ago */
+  /* Convert an article's published time (UNIX timestamp) to a number of
+  minutes/hours/days ago. */
   toTimeAgo(unix: number): string {
     const now = new Date().getTime();
     const articleTime = new Date(unix * 1000).getTime();
 
-    // Get difference between now and article's published time in hours
-    const difference = (now - articleTime)/(1000 * 3600);
+    // Get difference between now and article's published time in hours.
+    const difference = (now - articleTime) / (1000 * 3600);
 
-    // Return minutes if difference is less than 1 hour
+    // Return minutes if difference is less than 1 hour.
     if (difference < 1) {
-      let minutes = Math.round(difference * 60);
-
-      if (minutes === 1) {
-        return '1 minute ago';
-      }
-
-      return minutes.toString() + ' minutes ago';
+      const minutes = Math.round(difference * 60);
+      return minutes === 1 ? '1 minute ago' : `${minutes} minutes ago`;
     }
 
-    // Return hours if difference is less than 24 hours
+    // Return hours if difference is less than 24 hours.
     if (difference < 24) {
-      let hours = Math.round(difference);
-
-      if (hours === 1) {
-        return '1 hour ago';
-      }
-
-      return hours.toString() + ' hours ago';
+      const hours = Math.round(difference);
+      return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
     }
 
-    // Return days otherwise
-    let days = Math.round(difference / 24);
-
-    if (days === 1) {
-      return '1 day ago';
-    }
-
-    return Math.round(days).toString() + ' days ago';
+    // Return days otherwise.
+    const days = Math.round(difference / 24);
+    return days === 1 ? '1 day ago' : `${days} days ago`;
   }
 
-  // Emit stock selected event when related stock is selected for article
+  // Emit a stock selected event when a related stock is selected for an article.
   selectStock(symbol: string): void {
-    // Get selected stock's name to pass in stock selected event
-    let name = this.stocks.find(stock => stock.symbol === symbol).name;
-
-    let stock = {
-      symbol: symbol,
-      name: name
-    }
-
-    return this.stockSelected.emit(stock);
+    // Get the selected stock's name to pass in the stock selected event.
+    const name = this.stocks.find((stock) => stock.symbol === symbol)?.name ?? symbol;
+    this.stockSelected.emit({ symbol, name });
   }
 }

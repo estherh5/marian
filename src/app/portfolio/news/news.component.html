@@ -2,8 +2,8 @@
   <h1 class="section-title">Recent News</h1>
 
   <div id="articles">
-    <div *ngFor="let article of news"
-      class="article">
+    @for (article of news(); track article.id) {
+      <div class="article">
 
         <!-- Article thumbnail that links to article -->
         <a href="{{ article.url }}" target="_blank" class="article-image">
@@ -26,11 +26,14 @@
 
           <!-- Related stocks -->
           <div id="related-container">
-            <div *ngFor="let related of article.related" class="related" (click)="selectStock(related)">{{ related }}</div>
+            @for (related of article.related; track related) {
+              <div class="related" (click)="selectStock(related)">{{ related }}</div>
+            }
           </div>
         </div>
 
-    </div>
+      </div>
+    }
   </div>
 
 </div>

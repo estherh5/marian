@@ -1,129 +1,119 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import cloneDeep from 'lodash/cloneDeep';
-import * as moment from 'moment';
 import { interval } from 'rxjs';
 
-import { environment } from '../environments/environment';
-
-import { Company } from './company';
-import { PriceData } from './pricedata';
+import { Article } from './article';
 import { Share } from './share';
-import { Stock } from './stock';
+import { Stock, StockSelection } from './stock';
 import { StockService } from './stock.service';
 import { SYMBOLS } from './symbols';
+import { FooterComponent } from './footer/footer.component';
+import { HeaderComponent } from './header/header.component';
+import { NetChartComponent } from './net-chart/net-chart.component';
+import { PortfolioComponent } from './portfolio/portfolio.component';
+import { SearchComponent } from './search/search.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
+  imports: [HeaderComponent, SearchComponent, NetChartComponent, PortfolioComponent, FooterComponent],
 })
-export class AppComponent {
-  // Set refresh interval to 1 minute to get latest stock price
-  private refreshInterval$ = interval(60000);
+export class AppComponent implements OnInit {
+  private readonly stockService = inject(StockService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
-  // Stores whether user is on the landing page or not
-  isLandingPage: boolean = true;
+  // Whether the user is on the landing page.
+  isLandingPage = true;
 
-  // Stores whether or not the net equity chart should be rendered
-  renderNetChart: boolean = false;
+  // Whether the net equity chart should be rendered.
+  renderNetChart = false;
 
-  // List of stocks in user's portfolio
-  selectedStocks: Stock[] = [];
+  // The stocks in the user's portfolio.
+  readonly selectedStocks = signal<Stock[]>([]);
 
-  // Array of stock symbols
-  symbols: Array<string> = SYMBOLS;
+  // Whether the net equity chart should be updated.
+  updateNetChart = false;
 
-  // Stores whether or not the net equity chart should be updated
-  updateNetChart: boolean;
-
-  constructor(private stockService: StockService) { }
+  // Known stock symbols, used to filter news "related" symbols.
+  private readonly symbols: string[] = SYMBOLS;
 
   ngOnInit(): void {
-    /* If today is not Saturday or Sunday and the time is not before market
-    open (9:30 AM EST) or after market close (4:00 PM EST), request latest
-    stock price every minute */
-    if (![0, 6].includes(new Date().getDay()) &&
-      moment().utcOffset(-240).hours() +
-      moment().utcOffset(-240).minutes()/60 >= 9.5 &&
-      moment().utcOffset(-240).hours() < 16) {
-        this.refreshInterval$.subscribe(() => {
-
-          /* If user has selected stocks in portfolio, update stock price for
-          each */
-          if (this.selectedStocks) {
-            this.selectedStocks.map(stock => {
-
-              /* Get latest stock price only if historical stock data has
-              already been acquired */
-              if (stock.priceHistory) {
-                this.getCurrentPrice(stock.symbol);
-              }
-
-            });
-          }
-
+    // During market hours, refresh each loaded stock's price every minute.
+    if (this.isMarketOpen()) {
+      interval(60000)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.selectedStocks().forEach((stock) => {
+            if (stock.priceHistory.length) {
+              this.getCurrentPrice(stock.symbol);
+            }
+          });
         });
-      }
-
-    return;
+    }
   }
 
-  /* Add empty share to specified stock's shares list so user can enter another
-  share for stock */
+  /* Whether the US stock market is currently open (Mon–Fri, 9:30 AM–4:00 PM
+  Eastern). Uses the America/New_York time zone so it stays correct across DST. */
+  private isMarketOpen(): boolean {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      weekday: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(new Date());
+
+    const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '';
+    const weekday = part('weekday');
+    const hour = Number(part('hour')) % 24;
+    const minute = Number(part('minute'));
+    const time = hour + minute / 60;
+
+    const isWeekday = weekday !== 'Sat' && weekday !== 'Sun';
+    return isWeekday && time >= 9.5 && hour < 16;
+  }
+
+  /* Add an empty share to the specified stock so the user can enter another
+  share for it. */
   addNewShare(symbol: string): void {
-    // Find index of specified stock in selected stocks list
-    let stockIndex = this.selectedStocks
-      .findIndex(stock => stock.symbol === symbol);
+    const stocks = this.selectedStocks();
+    const stockIndex = stocks.findIndex((stock) => stock.symbol === symbol);
 
-    // Check if specified stock already contains empty share
-    let includesEmpty = this.selectedStocks[stockIndex].shares
-      .some(share => share.date === null);
+    // Only add an empty share if the stock does not already have one.
+    const includesEmpty = stocks[stockIndex].shares.some((share) => share.date === null);
 
-    /* Add empty share to specified stock's shares list if it is not already
-    there */
     if (!includesEmpty) {
-      this.selectedStocks[stockIndex].shares.push(<Share>({
-        date: null,
-        dateError: null,
-        number: null,
-        numberError: null,
-        price: null,
-        priceError: null
-      }));
+      stocks[stockIndex].shares.push(this.createEmptyShare());
+      this.selectedStocks.set([...stocks]);
     }
 
-    // Re-render net equity chart
-    return this.displayNetChart();
+    this.displayNetChart();
   }
 
-  // Add new stock to selected stocks list
-  addNewStock(stock: any): void {
-    // If stock is already in portfolio, scroll to stock
-    if (this.selectedStocks.find(obj => obj.symbol === stock.symbol)) {
-      return document.getElementById(stock.symbol).scrollIntoView();
+  // Add a new stock to the selected stocks list.
+  addNewStock(stock: StockSelection): void {
+    const stocks = this.selectedStocks();
+
+    // If the stock is already in the portfolio, scroll to it.
+    if (stocks.some((obj) => obj.symbol === stock.symbol)) {
+      document.getElementById(stock.symbol)?.scrollIntoView();
+      return;
     }
 
-    // Change view to portfolio instead of landing page
+    // Switch from the landing page to the portfolio view.
     this.isLandingPage = false;
 
-    // Collapse all previously added stocks in portfolio
-    this.selectedStocks.map(obj => obj.isCollapsed = true);
+    // Collapse all previously added stocks.
+    stocks.forEach((obj) => (obj.isCollapsed = true));
 
-    // Add new stock to selected stocks list
-    this.selectedStocks.push(<Stock>({
+    // Add the new stock to the selected stocks list.
+    this.selectedStocks.set([...stocks, {
       name: stock.name,
       symbol: stock.symbol,
-      shares: [
-        {
-          date: null,
-          dateError: null,
-          number: null,
-          numberError: null,
-          price: null,
-          priceError: null
-        }
-      ],
+      shares: [this.createEmptyShare()],
       isRising: null,
       price: null,
       change: null,
@@ -141,244 +131,202 @@ export class AppComponent {
       },
       news: [],
       isCollapsed: false,
-      updateChart: false
-    }));
+      updateChart: false,
+    }]);
 
-    // Get data for newly added stock
+    // Load data for the newly added stock.
     this.getPriceHistory(stock.symbol);
     this.getCurrentPrice(stock.symbol);
     this.getCompanyData(stock.symbol);
     this.getStockNews(stock.symbol);
-
-    return;
   }
 
-  // Determine if net equity chart should be rendered
+  // Determine whether the net equity chart should be rendered.
   displayNetChart(): void {
-    /* If user has at least one stock selected in portfolio, determine if there
-    is enough shares data to render net equity chart */
-    if (this.selectedStocks.length > 0) {
-      let stocks = cloneDeep(this.selectedStocks);
-
-      /* For each stock, filter the shares list to only contain shares without
-      errors and with date, number and price */
-      stocks.map(stock => stock.shares = stock.shares
-        .filter(share => !share.dateError && !share.numberError &&
-          !share.priceError && share.date && share.number &&
-          (share.price || share.price === 0)
-        )
-      );
-
-      /* Check that at least one stock has historical price data and at least
-      one share */
-      let enoughData = stocks.some(stock => stock.priceHistory.length > 1 &&
-        stock.shares.length > 0);
-
-      /* Update net equity chart if there is enough data and it was already
-      initially rendered */
-      if (enoughData && this.renderNetChart) {
-        this.updateNetChart = true;
-      }
-
-      /* Render net equity chart if there is enough data and it was not already
-      rendered */
-      else if (enoughData) {
-        this.renderNetChart = true;
-      }
-
-      // Otherwise, do not render net equity chart
-      else {
-        this.renderNetChart = false;
-      }
+    if (this.selectedStocks().length === 0) {
+      return;
     }
 
-    return;
+    const stocks = structuredClone(this.selectedStocks());
+
+    // For each stock, keep only valid, complete shares.
+    stocks.forEach(
+      (stock) =>
+        (stock.shares = stock.shares.filter(
+          (share) =>
+            !share.dateError &&
+            !share.numberError &&
+            !share.priceError &&
+            share.date &&
+            share.number &&
+            (share.price || share.price === 0),
+        )),
+    );
+
+    // There must be at least one stock with price history and a share.
+    const enoughData = stocks.some((stock) => stock.priceHistory.length > 1 && stock.shares.length > 0);
+
+    if (enoughData && this.renderNetChart) {
+      // Update the chart if it is already rendered.
+      this.updateNetChart = true;
+    } else if (enoughData) {
+      // Render the chart for the first time.
+      this.renderNetChart = true;
+    } else {
+      // Otherwise, do not render the chart.
+      this.renderNetChart = false;
+    }
   }
 
-  // Get information about specified stock's company
-  getCompanyData(symbol: string): void {
-    // Find index of specified stock in selected stocks list
-    let stockIndex = this.selectedStocks
-      .findIndex(stock => stock.symbol === symbol);
-
-    this.stockService.getCompanyData(symbol).subscribe(data => {
-      this.selectedStocks[stockIndex].company = data;
-
-      // Scroll to selected stock
-      document.getElementById(symbol).scrollIntoView();
-    });
-
-    return;
-  }
-
-  // Get current price for specified stock
-  getCurrentPrice(symbol: string): void {
-    // Find index of specified stock in selected stocks list
-    let stockIndex = this.selectedStocks
-      .findIndex(stock => stock.symbol === symbol);
-
-    /* Store latest price and change (in $ and %) */
-    this.stockService.getCurrentPrice(symbol).subscribe(data => {
-      this.selectedStocks[stockIndex].price = data.c;
-      this.selectedStocks[stockIndex].change = data.d;
-      this.selectedStocks[stockIndex].changePercent = data.dp;
-    });
-
-    return;
-  }
-
-  // Get price history for specified stock
-  getPriceHistory(symbol: string): void {
-    // Find index of specified stock in selected stocks list
-    let stockIndex = this.selectedStocks
-      .findIndex(stock => stock.symbol === symbol);
-
-    // Get daily price history
-    this.stockService.getDailyData(symbol).subscribe(data => {
-
-      // If service returns daily time series data, add it to selected stock
-      if (data['Time Series (Daily)']) {
-        /* Format date, close, volume, and dividend data from service, and
-        order data from oldest to newest date */
-        let apiData = Object.keys(data['Time Series (Daily)'])
-          .map(date => ({
-            // Set date time to 12:00 AM EST
-            date: new Date(`${date.replace(/-/g, '/')} 00:00 GMT-4`),
-
-            close: parseFloat(data['Time Series (Daily)'][date]['4. close']),
-
-            volume: parseFloat(data['Time Series (Daily)'][date]
-              ['5. volume']),
-
-            dividend: 0
-          })).reverse();
-
-        /* Determine if stock price is rising by comparing current price to
-        previous day's market close price */
-        this.selectedStocks[stockIndex].isRising = this.selectedStocks[stockIndex].price > apiData[apiData.length - 1].close;
-
-        // Set stock data for specified stock
-        this.selectedStocks[stockIndex].priceHistory = apiData;
-
-        // Trigger update of specified stock's price chart
-        this.selectedStocks[stockIndex].updateChart = true;
-        
-        // Store stock data in session storage for loading if server errors
-        sessionStorage.setItem(symbol, JSON.stringify(this
-          .selectedStocks[stockIndex].priceHistory));
-      }
-
-      /* If service sends error that maximum number of requests have been made,
-      use session stored data for stock if available */
-      else {
-        if (sessionStorage.getItem(symbol)) {
-          this.selectedStocks[stockIndex].priceHistory = JSON.parse(sessionStorage.getItem(symbol))
-            .map(stock => ({
-              date: new Date(stock['date']),
-              close: stock['close'],
-              volume: stock['volume'],
-              dividend: stock['dividend']
-            }));
-        }
-
-        /* Determine if stock price is rising by comparing current price to
-        previous day's market close price */
-        if (sessionStorage.getItem(symbol)) {
-          this.selectedStocks[stockIndex].isRising = this.selectedStocks[stockIndex].price > this
-            .selectedStocks[stockIndex].priceHistory[this
-            .selectedStocks[stockIndex].priceHistory.length - 2].close;
-        }
-      }
-    });
-
-    return;
-  }
-
-  // Get latest news for specified stock
-  getStockNews(symbol: string): void {
-    // Find index of specified stock in selected stocks list
-    let stockIndex = this.selectedStocks
-      .findIndex(stock => stock.symbol === symbol);
-
-    this.stockService.getStockNews(symbol).subscribe(data => {
-      if (data.length) {
-        data.slice(0, 10).map(article => {
-          /* Set related stocks list to an array and filter out symbols that are
-          not in the stock search array */
-          article.related = article.related.split().filter(item => this.symbols
-            .includes(item));
-
-          this.selectedStocks[stockIndex].news.push(article);
-        });
-
-        // Store stock news in session storage for loading if server errors
-        sessionStorage.setItem(`${symbol}-news`, JSON.stringify(this
-          .selectedStocks[stockIndex].news));
-      }
-      
-      /* If service sends error that maximum number of requests have been made,
-      use session stored data for news if available */
-      else if (sessionStorage.getItem(`${symbol}-news`)) {
-          this.selectedStocks[stockIndex].news = JSON.parse(sessionStorage.getItem(`${symbol}-news`));
-      } else {
-        this.selectedStocks[stockIndex].news = [];
-      }
+  /* Immutably replace a stock and render immediately. Some async sources
+  resolve outside Angular, so marking signal consumers dirty is not enough to
+  run change detection until the next browser event. */
+  private patchStock(symbol: string, changes: Partial<Stock>): void {
+    const stocks = this.selectedStocks();
+    const index = stocks.findIndex((stock) => stock.symbol === symbol);
+    if (index === -1) {
       return;
+    }
+
+    const updated = [...stocks];
+    updated[index] = { ...stocks[index], ...changes };
+    this.selectedStocks.set(updated);
+
+    if (!this.destroyRef.destroyed) {
+      this.changeDetector.detectChanges();
+    }
+  }
+
+  // Get information about the specified stock's company.
+  getCompanyData(symbol: string): void {
+    this.stockService.getCompanyData(symbol).subscribe((data) => {
+      this.patchStock(symbol, { company: data });
+
+      // Scroll to the selected stock.
+      document.getElementById(symbol)?.scrollIntoView();
     });
   }
 
-  // Reset update net chart value after net equity chart has been updated
+  // Get the current price for the specified stock.
+  getCurrentPrice(symbol: string): void {
+    this.stockService.getCurrentPrice(symbol).subscribe((data) => {
+      this.patchStock(symbol, { price: data.c, change: data.d, changePercent: data.dp });
+    });
+  }
+
+  // Get the price history for the specified stock.
+  getPriceHistory(symbol: string): void {
+    this.stockService.getDailyData(symbol).subscribe((data) => {
+      const stock = this.selectedStocks().find((s) => s.symbol === symbol);
+      if (!stock) {
+        return;
+      }
+      const series = data['Time Series (Daily)'];
+
+      if (series) {
+        // Format the daily data and order it from oldest to newest date.
+        const apiData = Object.keys(series)
+          .map((date) => ({
+            // Set the date time to 12:00 AM EST.
+            date: new Date(`${date.replace(/-/g, '/')} 00:00 GMT-4`),
+            close: parseFloat(series[date]['4. close']),
+            volume: parseFloat(series[date]['5. volume']),
+            dividend: 0,
+          }))
+          .reverse();
+
+        // Determine whether the price is rising vs. the previous day's close.
+        const isRising = (stock.price ?? 0) > apiData[apiData.length - 1].close;
+
+        this.patchStock(symbol, { priceHistory: apiData, isRising, updateChart: true });
+
+        // Cache the history so it can be reloaded if the API rate-limits us.
+        sessionStorage.setItem(symbol, JSON.stringify(apiData));
+      } else {
+        // The API limited us; fall back to cached data when available.
+        const cached = sessionStorage.getItem(symbol);
+        if (cached) {
+          const priceHistory = (JSON.parse(cached) as Array<Record<string, unknown>>).map((point) => ({
+            date: new Date(point['date'] as string),
+            close: point['close'] as number,
+            volume: point['volume'] as number,
+            dividend: point['dividend'] as number,
+          }));
+          const isRising = (stock.price ?? 0) > priceHistory[priceHistory.length - 2].close;
+          this.patchStock(symbol, { priceHistory, isRising, updateChart: true });
+        }
+      }
+    });
+  }
+
+  // Get the latest news for the specified stock.
+  getStockNews(symbol: string): void {
+    this.stockService.getStockNews(symbol).subscribe((data) => {
+      if (data.length) {
+        const news: Article[] = data.slice(0, 10).map((raw) => ({
+          ...raw,
+          // The raw API value is a comma-delimited string; keep only known symbols.
+          related: raw.related.split(',').filter((item) => this.symbols.includes(item)),
+        }));
+
+        this.patchStock(symbol, { news });
+
+        // Cache the news so it can be reloaded if the API rate-limits us.
+        sessionStorage.setItem(`${symbol}-news`, JSON.stringify(news));
+      } else {
+        const cached = sessionStorage.getItem(`${symbol}-news`);
+        this.patchStock(symbol, { news: cached ? (JSON.parse(cached) as Article[]) : [] });
+      }
+    });
+  }
+
+  // Reset the update flag after the net equity chart has been updated.
   onNetChartUpdated(): void {
     this.updateNetChart = false;
-
-    return;
   }
 
-  /* Reset update chart item for specified stock after its price chart has been
-  updated */
+  // Reset the update flag for a stock after its price chart has been updated.
+  // Runs during the chart's lifecycle (inside change detection), so this resets
+  // the (non-template-bound) flag directly rather than triggering another pass.
   onPriceChartUpdated(symbol: string): void {
-    // Find index of specified stock in selected stocks list
-    let stockIndex = this.selectedStocks
-      .findIndex(stock => stock.symbol === symbol);
-
-    this.selectedStocks[stockIndex].updateChart = false;
-
-    return;
-  }
-
-  // Remove share from specified stock
-  removeShare(stock: any): void {
-    // Find index of specified stock in selected stocks list
-    let stockIndex = this.selectedStocks
-      .findIndex(obj => obj.symbol === stock.symbol);
-
-    let numberOfShares = this.selectedStocks[stockIndex].shares.length;
-
-    // Remove share at specified index
-    this.selectedStocks[stockIndex].shares.splice(stock.index, 1);
-
-    /* If removed share was the last share in the shares list for the stock,
-    add an empty share */
-    if (parseInt(stock.index) === numberOfShares - 1) {
-      return this.addNewShare(stock.symbol);
-    }
-
-    // Otherwise, re-render net equity chart
-    else {
-      return this.displayNetChart();
+    const stocks = this.selectedStocks();
+    const index = stocks.findIndex((stock) => stock.symbol === symbol);
+    if (index !== -1) {
+      stocks[index].updateChart = false;
     }
   }
 
-  // Remove specified stock from user's portfolio
+  // Remove a share from the specified stock.
+  removeShare(removal: { symbol: string; index: number }): void {
+    const stocks = this.selectedStocks();
+    const stockIndex = stocks.findIndex((obj) => obj.symbol === removal.symbol);
+    const numberOfShares = stocks[stockIndex].shares.length;
+
+    stocks[stockIndex].shares.splice(removal.index, 1);
+    this.selectedStocks.set([...stocks]);
+
+    // If the removed share was the last one, add an empty share back.
+    if (removal.index === numberOfShares - 1) {
+      this.addNewShare(removal.symbol);
+    } else {
+      this.displayNetChart();
+    }
+  }
+
+  // Remove the specified stock from the user's portfolio.
   removeStock(stock: Stock): void {
-    // Find index of specified stock in selected stocks list
-    let stockIndex = this.selectedStocks
-      .findIndex(obj => obj.symbol === stock.symbol);
+    this.selectedStocks.update((stocks) => stocks.filter((obj) => obj.symbol !== stock.symbol));
+    this.displayNetChart();
+  }
 
-    // Remove stock from selected stocks list
-    this.selectedStocks.splice(stockIndex, 1);
-
-    // Determine if net equity chart should be displayed anymore
-    return this.displayNetChart();
+  private createEmptyShare(): Share {
+    return {
+      date: null,
+      dateError: null,
+      number: null,
+      numberError: null,
+      price: null,
+      priceError: null,
+    };
   }
 }

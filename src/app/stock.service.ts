@@ -1,54 +1,77 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
 
-import { environment } from '../environments/environment';
+import { Company } from './company';
+
+/** Finnhub real-time quote response. */
+export interface FinnhubQuote {
+  c: number; // current price
+  d: number; // change
+  dp: number; // change percent
+  h: number;
+  l: number;
+  o: number;
+  pc: number;
+  t: number;
+}
+
+/** Finnhub company-news article (raw shape). */
+export interface FinnhubArticle {
+  category: string;
+  datetime: number;
+  headline: string;
+  id: number;
+  image: string;
+  related: string;
+  source: string;
+  summary: string;
+  url: string;
+}
+
+/** Alpha Vantage TIME_SERIES_DAILY response (only the parts we read). */
+export interface AlphaVantageDailyResponse {
+  'Time Series (Daily)'?: Record<string, Record<string, string>>;
+  Note?: string;
+  Information?: string;
+}
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class StockService {
-  private alphaUrl = 'https://www.alphavantage.co/query';
+  private readonly http = inject(HttpClient);
 
-  private finnHubUrl = 'https://finnhub.io/api/v1';
+  // All upstream calls go through serverless proxy functions so the Alpha
+  // Vantage and Finnhub API keys stay server-side (see netlify/functions/*).
+  private readonly apiUrl = '/api';
 
-  constructor(private http: HttpClient) { }
-
-  // Get information about the specified stock's company
-  getCompanyData(symbol: string): Observable<any> {
-    const url = `${this.alphaUrl}?function=OVERVIEW&symbol=${symbol}&apikey=` +
-      `${environment.alphaPublicKey}`;
-    return this.http.get(url);
+  // Get information about the specified stock's company.
+  getCompanyData(symbol: string): Observable<Company> {
+    return this.http.get<Company>(`${this.apiUrl}/company`, {
+      params: new HttpParams().set('symbol', symbol),
+    });
   }
 
-  // Get the current price for the specified stock
-  getCurrentPrice(symbol: string): Observable<any> {
-    const url = `${this.finnHubUrl}/quote?symbol=${symbol}&token=` +
-      `${environment.finnHubPublicKey}`;
-    return this.http.get(url);
+  // Get the current price for the specified stock.
+  getCurrentPrice(symbol: string): Observable<FinnhubQuote> {
+    return this.http.get<FinnhubQuote>(`${this.apiUrl}/quote`, {
+      params: new HttpParams().set('symbol', symbol),
+    });
   }
 
-  // Get the earnings for the specified stock
-  getEarnings(symbol: string): Observable<any> {
-    const url = `${this.finnHubUrl}/calendar/earnings?symbol=${symbol}&token=` +
-      `${environment.finnHubPublicKey}`;
-    return this.http.get(url);
+  // Get daily price data for the specified stock (free-tier: latest 100 days).
+  getDailyData(symbol: string): Observable<AlphaVantageDailyResponse> {
+    return this.http.get<AlphaVantageDailyResponse>(`${this.apiUrl}/daily`, {
+      params: new HttpParams().set('symbol', symbol),
+    });
   }
 
-  // Get daily price data for specified stock's full history (up to 20 years)
-  getDailyData(symbol: string): Observable<any> {
-    const url = `${this.alphaUrl}?function=TIME_SERIES_DAILY` +
-      `&symbol=${symbol}&outputsize=full&apikey=${environment.alphaPublicKey}`;
-    return this.http.get(url);
-  }
-
-  // Get the latest news for the specified stock
-  getStockNews(symbol: string): Observable<any> {
-    const fromDate = new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString().split('T')[0]
-    const toDate = new Date().toISOString().split('T')[0];
-    const url = `${this.finnHubUrl}/company-news?symbol=${symbol}` +
-      `&from=${fromDate}&to=${toDate}&token=${environment.finnHubPublicKey}`;
-    return this.http.get(url);
+  // Get the latest year of news for the specified stock.
+  getStockNews(symbol: string): Observable<FinnhubArticle[]> {
+    return this.http.get<FinnhubArticle[]>(`${this.apiUrl}/news`, {
+      params: new HttpParams().set('symbol', symbol),
+    });
   }
 }

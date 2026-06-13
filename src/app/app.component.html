@@ -4,28 +4,31 @@
 
 <app-search
   [isLandingPage]="isLandingPage"
-  [selectedStocks]="selectedStocks"
+  [selectedStocks]="selectedStocks()"
   (stockSelected)="addNewStock($event)">
 </app-search>
 
 <div id="main-container">
-  <app-net-chart *ngIf="selectedStocks.length > 0 && renderNetChart"
-    [selectedStocks]="selectedStocks"
-    [update]="updateNetChart"
-    (chartUpdated)="onNetChartUpdated()"
-    (optionUpdated)="displayNetChart()">
-  </app-net-chart>
+  @if (selectedStocks().length > 0 && renderNetChart) {
+    <app-net-chart
+      [selectedStocks]="selectedStocks()"
+      [update]="updateNetChart"
+      (chartUpdated)="onNetChartUpdated()"
+      (optionUpdated)="displayNetChart()">
+    </app-net-chart>
+  }
 
-  <app-portfolio *ngFor="let selectedStock of selectedStocks"
-    id="{{ selectedStock.symbol }}"
-    [selectedStock]="selectedStock"
-    (chartUpdated)="onPriceChartUpdated($event)"
-    (shareEntered)="addNewShare($event)"
-    (shareUpdated)="displayNetChart()"
-    (shareRemoved)="removeShare($event)"
-    (stockRemoved)="removeStock($event)"
-    (stockSelected)="addNewStock($event)">
-  </app-portfolio>
+  @for (selectedStock of selectedStocks(); track selectedStock.symbol) {
+    <app-portfolio
+      id="{{ selectedStock.symbol }}"
+      [selectedStock]="selectedStock"
+      (chartUpdated)="onPriceChartUpdated($event)"
+      (shareEntered)="addNewShare($event)"
+      (shareRemoved)="removeShare($event)"
+      (stockRemoved)="removeStock($event)"
+      (stockSelected)="addNewStock($event)">
+    </app-portfolio>
+  }
 
   <app-footer></app-footer>
 </div>

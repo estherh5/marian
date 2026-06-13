@@ -2,7 +2,10 @@
   <h1 class="section-title">Net Equity</h1>
 
   <!-- Toggle chart y-axis to display % or $ units button -->
-  <button id="toggle" (click)="toggleAxis();">{{ buttonText }}</button>
+  <button id="toggle" (click)="toggleAxis()">{{ buttonText }}</button>
+
+  <!-- Period selector toolbar -->
+  <div class="chart-toolbar" #toolbar></div>
 
   <!-- Net equity chart container -->
   <div id="net-chart" class="chartdiv" #chartdiv></div>

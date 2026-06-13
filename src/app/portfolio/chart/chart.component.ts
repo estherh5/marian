@@ -1,232 +1,278 @@
-import { Component, OnInit, Input, ViewChild, ElementRef, Output,
-  EventEmitter } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  DoCheck,
+  ElementRef,
+  inject,
+  input,
+  NgZone,
+  OnDestroy,
+  output,
+  viewChild,
+} from '@angular/core';
 
-import * as moment from 'moment';
-import { AmChartsService, AmChart } from '@amcharts/amcharts3-angular';
+import * as am5 from '@amcharts/amcharts5';
+import * as am5xy from '@amcharts/amcharts5/xy';
+import * as am5stock from '@amcharts/amcharts5/stock';
+import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 
+import { PriceData } from '../../pricedata';
 import { Stock } from '../../stock';
+
+const SERIES_COLOR = 0x21c6ce;
+const UP_COLOR = 0x05d405;
+const DOWN_COLOR = 0xff0000;
 
 @Component({
   selector: 'app-chart',
   templateUrl: './chart.component.html',
-  styleUrls: ['./chart.component.css']
+  styleUrls: ['./chart.component.css'],
 })
-export class ChartComponent implements OnInit {
-  private chart: AmChart;
+export class ChartComponent implements AfterViewInit, DoCheck, OnDestroy {
+  private readonly zone = inject(NgZone);
 
-  @Input() selectedStock: Stock;
+  readonly selectedStock = input.required<Stock>();
 
-  @Output() chartUpdated: EventEmitter<string> = new EventEmitter<string>();
+  readonly chartUpdated = output<string>();
 
-  @ViewChild('chartdiv') chartdiv: ElementRef;
+  readonly chartDiv = viewChild.required<ElementRef<HTMLElement>>('chartdiv');
+  readonly toolbarDiv = viewChild.required<ElementRef<HTMLElement>>('toolbar');
 
-  constructor(private AmCharts: AmChartsService) { }
+  private root?: am5.Root;
+  private built = false;
+  private disposed = false;
 
-  ngOnInit(): void { }
-
-  /* Create price history chart after component's view is initialized / its DOM
-  elements are rendered */
+  // Build the chart once the view (DOM) is ready. Emitting chartUpdated clears
+  // the parent's update flag so ngDoCheck does not immediately rebuild.
   ngAfterViewInit(): void {
-    return this.createChart();
+    this.build();
+    this.chartUpdated.emit(this.selectedStock().symbol);
   }
 
-  // Recreate chart when update chart value is set to true
+  // Rebuild only when the price history is refreshed after the initial build.
   ngDoCheck(): void {
-    if (this.chart && this.selectedStock.updateChart) {
-      this.AmCharts.destroyChart(this.chart);
-      this.createChart();
-      this.chartUpdated.emit(this.selectedStock.symbol);
+    if (this.built && this.selectedStock().updateChart) {
+      this.build();
+      this.chartUpdated.emit(this.selectedStock().symbol);
     }
-
-    return;
   }
 
-  // Remove chart when component gets destroyed
   ngOnDestroy(): void {
-    if (this.chart) {
-      this.AmCharts.destroyChart(this.chart);
-    }
-
-    return;
+    this.disposed = true;
+    this.disposeChart();
   }
 
-  // Create price history chart
-  createChart(): void {
-    // Set initial date for trendline's initial value
-    const initialDate = moment().utcOffset(-240).date(new Date().getDate() - 7)
-      .hours(0).minutes(0).seconds(0).milliseconds(0).toDate();
-
-    // Set initial value for trendline to last market day's close price
-    const initialValue = this.selectedStock.priceHistory
-      .find(obj => obj.date.getTime() == initialDate.getTime()).close;
-
-    // Set stock events to price history values with dividend prices specified
-    let stockEvents: Array<object> = this.selectedStock.priceHistory
-      .filter(stock => stock['dividend'] !== 0);
-
-    stockEvents = stockEvents.map(stock => ({
-      'date': stock['date'],
-      'graph': 'g1',
-      'text': 'D',
-      'description': 'Dividend:<b> $' + parseFloat(stock['dividend'])
-        .toFixed(2) + '</b>'
-    }));
-
-    // Create price history amCharts stock chart with specified options
-    this.chart = this.AmCharts.makeChart(this.chartdiv.nativeElement.id, {
-      'type': 'stock',
-      'theme': 'light',
-      'categoryAxesSettings': {
-        'dateFormats': [
-          { period: 'mm', format: 'L:NN A' },
-          { period: 'hh', format: 'L:NN A' },
-          { period: 'DD', format: 'MMM DD' },
-          { period: 'WW', format: 'MMM DD' },
-          { period: 'MM', format: 'MMM' },
-          { period: 'YYYY', format: 'YYYY' }
-        ],
-        'minPeriod': 'mm'
-      },
-      'dataSets': [ {
-        'title': this.selectedStock.symbol,
-        'color': '#21c6ce',
-        'fieldMappings': [ {
-          'fromField': 'close',
-          'toField': 'close'
-        }, {
-          'fromField': 'volume',
-          'toField': 'volume'
-        } ],
-        'categoryField': 'date',
-        'dataProvider': this.selectedStock.priceHistory,
-        'stockEvents': stockEvents
-      } ],
-      'stockEventsSettings': {
-        'backgroundColor': '#ffffff',
-        'balloonColor': '#b9b9b9',
-        'borderColor': '#21c6ce',
-        'rollOverColor': '#21c6ce',
-        'type': 'sign'
-      },
-      'panels': [ {
-        'title': 'Price',
-        'precision': 2,
-        'stockGraphs': [ {
-          'id': 'g1',
-          'valueField': 'close',
-          'balloonText': '[[title]]:<b> $[[value]]</b>'
-        } ],
-        'stockLegend': {
-          'periodValueTextRegular': '$[[value.close]]',
-          'valueTextRegular': '$[[value]]'
-        },
-        'valueAxes': [{
-          'precision': 2,
-          'unit': '$',
-          'unitPosition': 'left'
-        }],
-        'trendLines': [ {
-          'finalDate': this.selectedStock
-            .priceHistory[this.selectedStock.priceHistory.length - 1].date,
-          'finalValue': this.selectedStock
-            .priceHistory[this.selectedStock.priceHistory.length - 1].close,
-          'initialDate': initialDate,
-          'initialValue': initialValue,
-          'lineColor': this.selectedStock.priceHistory[this.selectedStock
-            .priceHistory.length - 1].close > initialValue ? '#05d405' :
-              '#ff0000',  // Set line color to red/green
-          'lineThickness': 1
-        } ]
-      }, {
-        'title': 'Volume',
-        'percentHeight': 30,
-        'stockGraphs': [ {
-          'valueField': 'volume',
-          'type': 'column',
-          'fillAlphas': 1,
-          'balloonText': '[[title]]:<b> [[value]]</b>'
-        } ],
-        'stockLegend': {
-          'periodValueTextRegular': '[[value.close]]',
-          'valueTextRegular': '[[value]]'
+  private build(): void {
+    this.built = true;
+    this.disposeChart();
+    // Defer one frame so the container has its final layout before amCharts
+    // measures it — creating synchronously can leave the chart sized 0 until
+    // the next reflow.
+    this.zone.runOutsideAngular(() => {
+      requestAnimationFrame(() => {
+        if (!this.disposed) {
+          this.createChart();
         }
-      } ],
-      'chartScrollbarSettings': {
-        'enabled': false
-      },
-      'chartCursorSettings': {
-        'zoomable': false,
-        'valueBalloonsEnabled': true,
-        'fullWidth': true,
-        'cursorAlpha': 0.1,
-        'valueLineBalloonEnabled': true,
-        'valueLineEnabled': true,
-        'valueLineAlpha': 0.5
-      },
-      'periodSelector': {
-        'periods': [ {
-          'period': 'DD',
-          'count': 7,
-          'selected': true,
-          'label': '1 week'
-        }, {
-          'period': 'DD',
-          'count': 14,
-          'label': '2 weeks'
-        }, {
-          'period': 'MM',
-          'count': 1,
-          'label': '1 month'
-        }, {
-          'period': 'YYYY',
-          'count': 1,
-          'label': '1 year'
-        }, {
-          'period': 'YYYY',
-          'count': 5,
-          'label': '5 years'
-        }, {
-          'period': 'MAX',
-          'label': 'All'
-        } ],
-        'position': 'top',
-        'periodsText': '',
-        'inputFieldsEnabled': false,
-        'listeners': [ {
-          'event': 'changed',
-          'method': event => { this.chart && this.chart.panels ?
-            /* Update chart trendline when period is changed if chart and its
-            panels are rendered */
-            this.AmCharts.updateChart(this.chart, () => {
-              /* Set initial value for trendline to closest price history date
-              (giving range of +/- 2 days because of weekends/holidays) */
-              const startValue = this.selectedStock.priceHistory.find(obj => obj
-                .date.getDate() >= event.startDate.getDate() - 2 && obj
-                .date.getDate() <= event.startDate.getDate() + 2 && obj
-                .date.getMonth() === event.startDate.getMonth() && obj.date
-                .getFullYear() === event.startDate.getFullYear()).close;
+      });
+    });
+  }
 
-              this.chart.panels[0].trendLines = [{
-                'finalDate': event.endDate,
-                'finalValue': this.selectedStock.priceHistory[this
-                  .selectedStock.priceHistory.length - 1].close,
-                'initialDate': event.startDate,
-                'initialValue': startValue,
-                'lineColor': this.selectedStock.priceHistory[this
-                  .selectedStock.priceHistory.length - 1].close > startValue ?
-                  '#05d405' : '#ff0000',  // Set line color to red/green
-                'lineThickness': 1
-              }];
-            }) : (null)
-          }
-        } ]
-      },
-      'panelsSettings': {
-        'usePrefixes': true,
-        'fontFamily': '\'Open Sans\', sans-serif'
-      },
-    } );
+  private disposeChart(): void {
+    this.root?.dispose();
+    this.root = undefined;
+  }
 
-    return;
+  private createChart(): void {
+    const stock = this.selectedStock();
+    const data = stock.priceHistory.map((point) => ({ ...point, date: point.date.getTime() }));
+    if (data.length === 0) {
+      return;
+    }
+
+    // amCharts mutates the DOM heavily; keep it out of Angular's zone.
+    this.zone.runOutsideAngular(() => {
+      const root = am5.Root.new(this.chartDiv().nativeElement);
+      this.root = root;
+      root.setThemes([am5themes_Animated.new(root)]);
+
+      const stockChart = root.container.children.push(am5stock.StockChart.new(root, {}));
+
+      // --- Price panel -------------------------------------------------------
+      const mainPanel = stockChart.panels.push(
+        am5stock.StockPanel.new(root, { wheelY: 'zoomX', panX: true, panY: false }),
+      );
+
+      const valueAxis = mainPanel.yAxes.push(
+        am5xy.ValueAxis.new(root, {
+          renderer: am5xy.AxisRendererY.new(root, { pan: 'zoom' }),
+          numberFormat: "'$'#,##0.00",
+          extraTooltipPrecision: 2,
+        }),
+      );
+
+      const dateAxis = mainPanel.xAxes.push(
+        am5xy.GaplessDateAxis.new(root, {
+          baseInterval: { timeUnit: 'day', count: 1 },
+          renderer: am5xy.AxisRendererX.new(root, {}),
+        }),
+      );
+
+      const valueSeries = mainPanel.series.push(
+        am5xy.LineSeries.new(root, {
+          name: stock.symbol,
+          valueXField: 'date',
+          valueYField: 'close',
+          xAxis: dateAxis,
+          yAxis: valueAxis,
+          stroke: am5.color(SERIES_COLOR),
+          fill: am5.color(SERIES_COLOR),
+          legendValueText: "${valueY}",
+          tooltip: am5.Tooltip.new(root, { labelText: "{name}: ${valueY}" }),
+        }),
+      );
+      stockChart.set('stockSeries', valueSeries);
+
+      const legend = mainPanel.plotContainer.children.push(
+        am5stock.StockLegend.new(root, { stockChart }),
+      );
+      legend.data.setAll([valueSeries]);
+
+      this.addDividendBullets(root, valueSeries);
+
+      // --- Volume panel ------------------------------------------------------
+      const volumePanel = stockChart.panels.push(
+        am5stock.StockPanel.new(root, { wheelY: 'zoomX', panX: true, panY: false, height: am5.percent(30) }),
+      );
+      volumePanel.panelControls.closeButton.set('forceHidden', true);
+
+      const volumeValueAxis = volumePanel.yAxes.push(
+        am5xy.ValueAxis.new(root, {
+          renderer: am5xy.AxisRendererY.new(root, { pan: 'zoom' }),
+          numberFormat: '#.0a',
+        }),
+      );
+
+      const volumeDateAxis = volumePanel.xAxes.push(
+        am5xy.GaplessDateAxis.new(root, {
+          baseInterval: { timeUnit: 'day', count: 1 },
+          renderer: am5xy.AxisRendererX.new(root, {}),
+        }),
+      );
+
+      const volumeSeries = volumePanel.series.push(
+        am5xy.ColumnSeries.new(root, {
+          name: 'Volume',
+          valueXField: 'date',
+          valueYField: 'volume',
+          xAxis: volumeDateAxis,
+          yAxis: volumeValueAxis,
+          fill: am5.color(SERIES_COLOR),
+          tooltip: am5.Tooltip.new(root, { labelText: '{name}: {valueY}' }),
+        }),
+      );
+      stockChart.set('volumeSeries', volumeSeries);
+
+      const volumeLegend = volumePanel.plotContainer.children.push(
+        am5stock.StockLegend.new(root, { stockChart }),
+      );
+      volumeLegend.data.setAll([volumeSeries]);
+
+      // --- Trendline (period start -> latest close, colored by direction) ----
+      const trendSeries = mainPanel.series.push(
+        am5xy.LineSeries.new(root, {
+          name: 'Trend',
+          valueXField: 'date',
+          valueYField: 'close',
+          xAxis: dateAxis,
+          yAxis: valueAxis,
+          stroke: am5.color(UP_COLOR),
+        }),
+      );
+      trendSeries.strokes.template.setAll({ strokeWidth: 1 });
+      trendSeries.hide(); // shown once data ranges are known
+
+      valueSeries.data.setAll(data);
+      volumeSeries.data.setAll(data);
+
+      const updateTrend = () => this.updateTrendline(stock.priceHistory, dateAxis, trendSeries);
+      dateAxis.onPrivate('selectionMin', updateTrend);
+      dateAxis.onPrivate('selectionMax', updateTrend);
+
+      // --- Period selector toolbar ------------------------------------------
+      am5stock.StockToolbar.new(root, {
+        container: this.toolbarDiv().nativeElement,
+        stockChart,
+        controls: [
+          am5stock.PeriodSelector.new(root, {
+            stockChart,
+            hideLongPeriods: true,
+            periods: [
+              { timeUnit: 'day', count: 7, name: '1 week' },
+              { timeUnit: 'day', count: 14, name: '2 weeks' },
+              { timeUnit: 'month', count: 1, name: '1 month' },
+              { timeUnit: 'year', count: 1, name: '1 year' },
+              { timeUnit: 'year', count: 5, name: '5 years' },
+              { timeUnit: 'max', name: 'All' },
+            ],
+          }),
+        ],
+      });
+
+      // Default to the most recent week, matching the original chart.
+      valueSeries.events.once('datavalidated', () => {
+        const last = data[data.length - 1].date;
+        const weekAgo = last - 7 * 24 * 3600 * 1000;
+        dateAxis.zoomToDates(new Date(weekAgo), new Date(last));
+      });
+    });
+  }
+
+  // Add "D" bullets with a tooltip for each price point that paid a dividend.
+  private addDividendBullets(root: am5.Root, series: am5xy.LineSeries): void {
+    series.bullets.push((_root, _series, dataItem) => {
+      const context = dataItem.dataContext as PriceData;
+      if (!context.dividend) {
+        return undefined;
+      }
+      return am5.Bullet.new(root, {
+        sprite: am5.Label.new(root, {
+          text: 'D',
+          fill: am5.color(0xffffff),
+          background: am5.Circle.new(root, { radius: 7, fill: am5.color(SERIES_COLOR) }),
+          centerX: am5.p50,
+          centerY: am5.p50,
+          fontSize: 10,
+          tooltipText: `Dividend: $${context.dividend.toFixed(2)}`,
+        }),
+      });
+    });
+  }
+
+  // Draw a trendline from the visible range's starting close to the latest close.
+  private updateTrendline(
+    history: PriceData[],
+    dateAxis: am5xy.DateAxis<am5xy.AxisRenderer>,
+    trendSeries: am5xy.LineSeries,
+  ): void {
+    if (history.length === 0) {
+      return;
+    }
+
+    const startTime = dateAxis.getPrivate('selectionMin') ?? dateAxis.getPrivate('min');
+    if (startTime == null) {
+      return;
+    }
+
+    const startPoint =
+      history.find((point) => point.date.getTime() >= startTime) ?? history[0];
+    const endPoint = history[history.length - 1];
+
+    const color = endPoint.close > startPoint.close ? UP_COLOR : DOWN_COLOR;
+    trendSeries.set('stroke', am5.color(color));
+    trendSeries.data.setAll([
+      { date: startPoint.date.getTime(), close: startPoint.close },
+      { date: endPoint.date.getTime(), close: endPoint.close },
+    ]);
+    trendSeries.show();
   }
 }

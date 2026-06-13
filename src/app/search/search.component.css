@@ -125,6 +125,8 @@
 }
 
 .stocks-list {
+  width: 100%;
+  box-sizing: border-box;
   max-height: 210px;
   padding: 9px;
   border-collapse: collapse;
