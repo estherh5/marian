@@ -1,7 +1,9 @@
 #site-menu-icon-container {
   position: fixed;
+  top: 7px;
+  left: 0;
   width: 50px;
-  margin-top: 7px;
+  height: 30px;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -24,7 +26,8 @@
 
 #site-menu-icon {
   height: 30px;
-  left: 0px;
+  width: auto;
+  display: block;
   opacity: 0.7;
   filter: grayscale(1);
   z-index: 10;
@@ -37,6 +40,8 @@
 
 #site-menu {
   position: fixed;
+  top: 0;
+  left: 0;
   width: 130px;
   padding-bottom: 6px;
   padding-left: 6px;

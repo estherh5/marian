@@ -1,179 +1,139 @@
-import { Component, OnInit, Input, Output, HostListener, EventEmitter,
-  ViewChild, ElementRef } from '@angular/core';
+import { Component, ElementRef, HostListener, input, output, viewChild } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { algoliasearch, type SearchClient } from 'algoliasearch';
 
-import * as algoliasearch from 'algoliasearch';
-const algoliasearch = require('algoliasearch/dist/algoliasearch.js');
+import { Stock, StockSelection } from '../stock';
 
-import { Stock } from '../stock';
-import { SearchService } from './search.service';
+interface SearchResult {
+  objectID: string;
+  symbol: string;
+  name: string;
+  selected?: boolean;
+}
 
 @Component({
   selector: 'app-search',
   templateUrl: './search.component.html',
-  styleUrls: ['./search.component.css']
+  styleUrls: ['./search.component.css'],
+  imports: [NgClass],
 })
-export class SearchComponent implements OnInit {
-  @Input() selectedStocks: Stock[];
-  @Input() isLandingPage: boolean;
+export class SearchComponent {
+  readonly selectedStocks = input.required<Stock[]>();
+  readonly isLandingPage = input.required<boolean>();
 
-  @Output() stockSelected: EventEmitter<any> = new EventEmitter<any>();
+  readonly stockSelected = output<StockSelection>();
 
-  @ViewChild('searchBar') searchBar: ElementRef;
-  @ViewChild('searchButton') searchButton: ElementRef;
-  @ViewChild('stocksList') stocksList: ElementRef;
+  readonly searchBar = viewChild.required<ElementRef<HTMLInputElement>>('searchBar');
+  readonly searchButton = viewChild.required<ElementRef<HTMLButtonElement>>('searchButton');
+  readonly stocksList = viewChild.required<ElementRef<HTMLElement>>('stocksList');
 
-  client = algoliasearch('ABHYDU4YXO', '14318eab1436b71c4b597e19d10b9d61');
+  private readonly indexName = 'stocks';
+  private readonly client: SearchClient = algoliasearch(
+    'ABHYDU4YXO',
+    '14318eab1436b71c4b597e19d10b9d61',
+  );
 
-  index = this.client.initIndex('stocks');
+  noneFound = false;
+  searchResults: SearchResult[] = [];
 
-  noneFound: boolean;
-
-  searchResults: Array<any>;
-
-  constructor(private searchService: SearchService) { }
-
-  ngOnInit(): void { }
-
-  // Hide search results list if user clicks outside of component
+  // Hide the search results list if the user clicks outside of the component.
   @HostListener('document:click', ['$event'])
-  clickedOutsideInput(event: any): void {
-    if (event.target !== this.searchBar && event.target !==
-      this.searchButton && !this.stocksList.nativeElement
-      .contains(event.target)) {
-        this.stocksList.nativeElement.style.display = 'none';
-      }
-
-    return;
+  clickedOutsideInput(event: MouseEvent): void {
+    const target = event.target as Node;
+    if (
+      target !== this.searchBar().nativeElement &&
+      target !== this.searchButton().nativeElement &&
+      !this.stocksList().nativeElement.contains(target)
+    ) {
+      this.stocksList().nativeElement.style.display = 'none';
+    }
   }
 
-  // Set specified stock as selected when user hovers over it
-  hoverOverStock(stock: any): boolean {
-    // Remove selected status from all stocks
-    this.searchResults.map(obj => obj.selected = false);
-
-    // Get index of specified stock
-    let stockIndex = this.searchResults.findIndex(obj => obj
-      .symbol === stock.symbol);
-
-    // Set specified stock to selected
-    return this.searchResults[stockIndex].selected = true;
+  // Mark the specified stock as selected when the user hovers over it.
+  hoverOverStock(stock: SearchResult): void {
+    this.searchResults.forEach((obj) => (obj.selected = obj.symbol === stock.symbol));
   }
 
-  // Get stock search results list from Algolia search
-  getSearchResults(phrase): void {
-    this.index.search({
-      query: phrase
-    }, (err, content) => {
-      this.searchResults = content.hits;
-
-      // Filter out stocks that are already in the user's portfolio
-      this.searchResults = this.searchResults.filter(stock => this
-        .selectedStocks.every(obj => obj.symbol !== stock.symbol));
-
-      // If there are no stocks found, display no results found message
-      if (this.searchResults.length === 0) {
-        this.noneFound = true;
-
-        this.stocksList.nativeElement.style.display = 'block';
-      }
-
-      // Otherwise, display a max of 8 stocks in the search results list
-      else {
-        this.noneFound = false;
-
-        this.searchResults = this.searchResults.slice(0, 8);
-
-        // Remove selected status from all stocks
-        this.searchResults.map(stock => stock.selected = false);
-
-        // Set first stock to selected
-        this.searchResults[0].selected = true;
-
-        this.stocksList.nativeElement.style.display = 'block';
-      }
+  // Get the stock search results list from Algolia search.
+  async getSearchResults(phrase: string): Promise<void> {
+    const { hits } = await this.client.searchSingleIndex<SearchResult>({
+      indexName: this.indexName,
+      searchParams: { query: phrase },
     });
 
-    return;
-  }
+    // Filter out stocks that are already in the user's portfolio.
+    const selected = this.selectedStocks();
+    let results = hits.filter((stock) => selected.every((obj) => obj.symbol !== stock.symbol));
 
-  // Search for stocks when user types in search bar
-  searchStocks(event: any): any {
-    /* If there is a value in the search bar, check what key the user clicked
-    and/or search for stocks */
-    if (this.searchBar.nativeElement.value) {
-      /* Hover over next stock in search results list when user clicks down
-      arrow */
-      if (event.key === 'ArrowDown') {
-        // Get index of currently selected stock
-        let stockIndex = this.searchResults.findIndex(stock => stock
-          .selected === true);
-
-        this.searchResults[stockIndex].selected = false;
-
-        /* Hover over first stock in search results list if previously selected
-        stock is last in list */
-        if (stockIndex === this.searchResults.length - 1) {
-          return this.searchResults[0].selected = true;
-        }
-
-        return this.searchResults[stockIndex + 1].selected = true;
-      }
-
-      /* Hover over previous stock in search results list when user clicks up
-      arrow */
-      if (event.key === 'ArrowUp') {
-      // Get index of currently selected stock
-      let stockIndex = this.searchResults.findIndex(stock => stock
-        .selected === true);
-
-        this.searchResults[stockIndex].selected = false;
-
-        /* Hover over last stock in search results list if previously selected
-        stock is first in list */
-        if (stockIndex === 0) {
-          return this.searchResults[this.searchResults.length - 1]
-            .selected = true;
-        }
-
-        return this.searchResults[stockIndex - 1].selected = true;
-      }
-
-      /* Select stock when user clicks enter if there is a value in the search
-      bar and there is at least one search result in the search results list */
-      if (event.key === 'Enter') {
-        if (this.searchBar.nativeElement.value) {
-
-          if (this.searchResults.length > 0) {
-            // Find stock that has selected status
-            var selected = this.searchResults.find(stock => stock
-              .selected === true);
-
-            return this.selectStock(selected);
-          }
-        }
-        return;
-      }
-
-      // Request stocks based on the value in the search bar
-      this.getSearchResults(this.searchBar.nativeElement.value);
+    // If there are no stocks found, display the no-results message.
+    if (results.length === 0) {
+      this.noneFound = true;
+      this.searchResults = [];
+      this.stocksList().nativeElement.style.display = 'block';
+      return;
     }
 
-    // Otherwise, hide the search results list
-    else {
-      this.stocksList.nativeElement.style.display = 'none';
-    }
-
-    return;
+    // Otherwise, display a max of 8 stocks in the search results list.
+    this.noneFound = false;
+    results = results.slice(0, 8);
+    results.forEach((stock) => (stock.selected = false));
+    results[0].selected = true;
+    this.searchResults = results;
+    this.stocksList().nativeElement.style.display = 'block';
   }
 
-  // Emit stock selected event when user selects specified stock
-  selectStock(stock: any): void {
-    // Clear search bar value
-    this.searchBar.nativeElement.value = '';
+  // Search for stocks when the user types in the search bar (or clicks search).
+  searchStocks(event: KeyboardEvent | MouseEvent): void {
+    const searchValue = this.searchBar().nativeElement.value;
+    const key = 'key' in event ? event.key : undefined;
 
-    // Hide stock search results list
-    this.stocksList.nativeElement.style.display = 'none';
+    // If the search bar is empty, hide the search results list.
+    if (!searchValue) {
+      this.stocksList().nativeElement.style.display = 'none';
+      return;
+    }
 
-    return this.stockSelected.emit(stock);
+    // Move the highlight to the next result on ArrowDown.
+    if (key === 'ArrowDown') {
+      const index = this.searchResults.findIndex((stock) => stock.selected);
+      this.searchResults[index].selected = false;
+      const next = index === this.searchResults.length - 1 ? 0 : index + 1;
+      this.searchResults[next].selected = true;
+      return;
+    }
+
+    // Move the highlight to the previous result on ArrowUp.
+    if (key === 'ArrowUp') {
+      const index = this.searchResults.findIndex((stock) => stock.selected);
+      this.searchResults[index].selected = false;
+      const previous = index === 0 ? this.searchResults.length - 1 : index - 1;
+      this.searchResults[previous].selected = true;
+      return;
+    }
+
+    // Select the highlighted stock on Enter when there is at least one result.
+    if (key === 'Enter') {
+      if (this.searchResults.length > 0) {
+        const selected = this.searchResults.find((stock) => stock.selected);
+        if (selected) {
+          this.selectStock(selected);
+        }
+      }
+      return;
+    }
+
+    // Otherwise, request stocks based on the value in the search bar.
+    void this.getSearchResults(searchValue);
+  }
+
+  // Emit a stock-selected event when the user selects the specified stock.
+  selectStock(stock: SearchResult): void {
+    // Clear the search bar value.
+    this.searchBar().nativeElement.value = '';
+
+    // Hide the stock search results list.
+    this.stocksList().nativeElement.style.display = 'none';
+
+    this.stockSelected.emit({ symbol: stock.symbol, name: stock.name });
   }
 }

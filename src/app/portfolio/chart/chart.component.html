@@ -1,6 +1,9 @@
 <div class="chart-container">
   <h1 class="section-title">Price</h1>
 
+  <!-- Period selector toolbar -->
+  <div class="chart-toolbar" #toolbar></div>
+
   <!-- Price history chart container -->
-  <div class="chartdiv" id="{{ selectedStock.symbol + 'chartdiv' }}" #chartdiv></div>
+  <div class="chartdiv" id="{{ selectedStock().symbol + 'chartdiv' }}" #chartdiv></div>
 </div>

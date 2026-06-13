@@ -1,109 +1,94 @@
-import { Component, OnInit, Input, Output, ViewChild, ElementRef,
-  EventEmitter } from '@angular/core';
+import { Component, input, output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { NgClass } from '@angular/common';
 
-import { Share } from '../../share';
+import { Share, ShareRemoval } from '../../share';
 import { Stock } from '../../stock';
 
 @Component({
   selector: 'app-calculator',
   templateUrl: './calculator.component.html',
-  styleUrls: ['./calculator.component.css']
+  styleUrls: ['./calculator.component.css'],
+  imports: [FormsModule, NgClass],
 })
-export class CalculatorComponent implements OnInit {
-  @Input() selectedStock: Stock;
+export class CalculatorComponent {
+  readonly selectedStock = input.required<Stock>();
 
-  @Output() shareEntered: EventEmitter<string> = new EventEmitter<string>();
-  @Output() shareRemoved: EventEmitter<any> = new EventEmitter<any>();
+  readonly shareEntered = output<string>();
+  readonly shareRemoved = output<ShareRemoval>();
 
-  constructor() { }
+  /* Validate input fields for a share based on the passed type ('date',
+  'number', 'price') and event (input value). */
+  inputChanged(share: Share, type: 'date' | 'number' | 'price', event: string | number): void {
+    const stock = this.selectedStock();
 
-  ngOnInit(): void { }
-
-  /* Validate input fields for share based on passed type ('date', 'number',
-  'price') and event (input value) */
-  inputChanged(share: Share, type: string, event: any): void {
-    /* If input is date type, remove any previous error and determine if
-    purchase date is before the latest market close time */
+    // If input is a date, determine if the purchase date is before the latest
+    // market close time.
     if (type === 'date') {
+      const value = String(event);
       share.dateError = '';
 
-      if (new Date(`${event.replace(/-/g, '/')} 09:30 GMT-` +
-        `${new Date().getTimezoneOffset()/60}`).getTime() >
-        this.selectedStock.priceHistory[this.selectedStock
-        .priceHistory.length - 1].date.getTime()) {
-          share.dateError = 'Purchase date must be before the latest market ' +
-            'close.';
-        }
+      const latestClose = stock.priceHistory[stock.priceHistory.length - 1].date.getTime();
+      const offsetHours = new Date().getTimezoneOffset() / 60;
+      const purchaseDate = new Date(`${value.replace(/-/g, '/')} 09:30 GMT-${offsetHours}`).getTime();
 
-        // Otherwise, set share date as input value
-        else {
-          share.date = event.replace(/-/g, '/');
-        }
+      if (purchaseDate > latestClose) {
+        share.dateError = 'Purchase date must be before the latest market close.';
+      } else {
+        share.date = value.replace(/-/g, '/');
+      }
+      return;
     }
 
-    /* If input is number type, remove any previous error and determine if
-    share number is greater than 0 */
-    else if (type === 'number') {
+    // If input is a share count, ensure it is greater than 0.
+    if (type === 'number') {
+      const value = Number(event);
       share.numberError = '';
 
-      if (event <= 0) {
+      if (value <= 0) {
         share.numberError = 'Number of shares must be greater than 0.';
+      } else {
+        share.number = value;
       }
-
-      // Otherwise, set share number as input value
-      else {
-        share.number = event;
-      }
+      return;
     }
 
-    /* If input is price type, remove any previous error and determine if
-    share price is greater than 0 */
-    else if (type === 'price') {
-      share.priceError = '';
+    // If input is a price, ensure it is not negative.
+    const value = Number(event);
+    share.priceError = '';
 
-      if (event < 0) {
-        share.priceError = 'Price per share cannot be negative.';
-      }
-
-      // Otherwise, set share price as input value
-      else {
-        share.price = event;
-      }
+    if (value < 0) {
+      share.priceError = 'Price per share cannot be negative.';
+    } else {
+      share.price = value;
     }
-
-    return;
   }
 
-  /* Emit remove share event with index of specifed share to remove when remove
-  share button is clicked */
-  removeShare(symbol: string, index: string): void {
-    return this.shareRemoved.emit({symbol: symbol, index: index});
+  /* Emit a remove-share event with the index of the share to remove when the
+  remove-share button is clicked. */
+  removeShare(symbol: string, index: number): void {
+    this.shareRemoved.emit({ symbol, index });
   }
 
-  /* Format share price as two decimal places to represent currency when user
-  focuses out of price input */
+  /* Format share price to two decimal places when the user focuses out of the
+  price input. */
   formatPrice(share: Share): void {
-    share.price = share.price.toFixed(2);
-    return;
+    if (share.price != null) {
+      share.price = Number(share.price.toFixed(2));
+    }
   }
 
-  /* Emit share entered event with specified stock's symbol when each input of
-  share is specified and user focuses out of input */
-  onShareEntered(index: string): void {
-    // Get each input for the given share index
-    let dateInput = <HTMLInputElement>document.getElementById(this
-      .selectedStock.symbol + 'dateInput' + index);
-    let numberInput = <HTMLInputElement>document.getElementById(this
-      .selectedStock.symbol + 'numberInput' + index);
-    let priceInput = <HTMLInputElement>document.getElementById(this
-      .selectedStock.symbol + 'priceInput' + index);
+  /* Emit a share-entered event with the stock's symbol once every input of a
+  share is specified and the user focuses out of an input. */
+  onShareEntered(index: number): void {
+    const symbol = this.selectedStock().symbol;
+    const dateInput = document.getElementById(`${symbol}dateInput${index}`) as HTMLInputElement;
+    const numberInput = document.getElementById(`${symbol}numberInput${index}`) as HTMLInputElement;
+    const priceInput = document.getElementById(`${symbol}priceInput${index}`) as HTMLInputElement;
 
-    // Emit share entered event if each input value is specified
-    if (dateInput.value && parseFloat(numberInput.value) > 0 &&
-      parseFloat(priceInput.value) >= 0) {
-        this.shareEntered.emit(this.selectedStock.symbol);
-      }
-
-    return;
+    // Emit a share-entered event if each input value is specified.
+    if (dateInput.value && parseFloat(numberInput.value) > 0 && parseFloat(priceInput.value) >= 0) {
+      this.shareEntered.emit(symbol);
+    }
   }
 }

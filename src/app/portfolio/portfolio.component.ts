@@ -1,52 +1,53 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, input, output } from '@angular/core';
+import { NgClass } from '@angular/common';
 
-import { Company } from '../company';
-import { Stock } from '../stock';
+import { ShareRemoval } from '../share';
+import { Stock, StockSelection } from '../stock';
+import { CalculatorComponent } from './calculator/calculator.component';
+import { ChartComponent } from './chart/chart.component';
+import { CompanyComponent } from './company/company.component';
+import { NewsComponent } from './news/news.component';
 
 @Component({
   selector: 'app-portfolio',
   templateUrl: './portfolio.component.html',
-  styleUrls: ['./portfolio.component.css']
+  styleUrls: ['./portfolio.component.css'],
+  imports: [NgClass, CalculatorComponent, ChartComponent, CompanyComponent, NewsComponent],
 })
-export class PortfolioComponent implements OnInit {
-  @Input() selectedStock: Stock;
+export class PortfolioComponent {
+  readonly selectedStock = input.required<Stock>();
 
-  @Output() chartUpdated: EventEmitter<string> = new EventEmitter<string>();
-  @Output() shareEntered: EventEmitter<string> = new EventEmitter<string>();
-  @Output() shareRemoved: EventEmitter<any> = new EventEmitter<any>();
-  @Output() stockRemoved: EventEmitter<Stock> = new EventEmitter<Stock>();
-  @Output() stockSelected: EventEmitter<any> = new EventEmitter<any>();
+  readonly chartUpdated = output<string>();
+  readonly shareEntered = output<string>();
+  readonly shareRemoved = output<ShareRemoval>();
+  readonly stockRemoved = output<Stock>();
+  readonly stockSelected = output<StockSelection>();
 
-  constructor() { }
+  // Exposed so the template can format price changes.
+  readonly Math = Math;
 
-  ngOnInit(): void { }
-
-  // Emit chart updated event when child chart component is updated
+  // Emit a chart-updated event when the child chart component is updated.
   onChartUpdated(symbol: string): void {
-    return this.chartUpdated.emit(symbol);
+    this.chartUpdated.emit(symbol);
   }
 
-  /* Emit share entered event when share is added or updated in child
-  calculator component */
+  // Emit a share-entered event when a share is added/updated in the calculator.
   onShareEntered(symbol: string): void {
-    return this.shareEntered.emit(symbol);
+    this.shareEntered.emit(symbol);
   }
 
-  /* Emit share removed event when share is removed in child calculator
-  component */
-  onShareRemoved(stock: any): void {
-    return this.shareRemoved.emit(stock);
+  // Emit a share-removed event when a share is removed in the calculator.
+  onShareRemoved(removal: ShareRemoval): void {
+    this.shareRemoved.emit(removal);
   }
 
-  // Emit stock selected event when stock is selected in child search component
-  onStockSelected(stock: any): void {
-    return this.stockSelected.emit(stock);
+  // Emit a stock-selected event when a related stock is selected in the news.
+  onStockSelected(stock: StockSelection): void {
+    this.stockSelected.emit(stock);
   }
 
-  // Emit stock removed event when remove stock button is clicked
+  // Emit a stock-removed event when the remove-stock button is clicked.
   removeStock(stock: Stock): void {
-    return this.stockRemoved.emit(stock);
+    this.stockRemoved.emit(stock);
   }
-
-  Math = Math;
 }

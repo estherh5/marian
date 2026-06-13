@@ -4,6 +4,7 @@
 /dist
 /tmp
 /out-tsc
+/.angular/cache
 
 # dependencies
 /node_modules
@@ -33,6 +34,14 @@ npm-debug.log
 yarn-error.log
 testem.log
 /typings
+
+# Local environment / secrets
+.env
+.env.*
+!.env.example
+
+# Netlify
+.netlify
 
 # System Files
 .DS_Store

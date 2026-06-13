@@ -3,33 +3,44 @@
   <h1 class="section-title">About</h1>
 
   <div id="description">
-    {{ company.Description }}
+    {{ company().Description }}
   </div>
 
   <div id="company-info">
     <!-- Company's name -->
-    <div *ngIf="company.Name" class="item" title="Name">
-      {{ company.Name }}
-    </div>
+    @if (company().Name) {
+      <div class="item" title="Name">
+        {{ company().Name }}
+      </div>
+    }
 
     <!-- Company's price-earnings ratio -->
-    <div *ngIf="company.PERatio" class="item" title="Price/Earnings Ratio">
-      P/E = {{ company.PERatio }}
-    </div>
+    @if (company().PERatio) {
+      <div class="item" title="Price/Earnings Ratio">
+        P/E = {{ company().PERatio }}
+      </div>
+    }
 
     <!-- Company's exchange market -->
-    <div *ngIf="company.Exchange" class="item" title="Exchange">
-      {{ company.Exchange }}
-    </div>
+    @if (company().Exchange) {
+      <div class="item" title="Exchange">
+        {{ company().Exchange }}
+      </div>
+    }
 
     <!-- Company's sector and industry -->
-    <div *ngIf="company.Sector" class="item" title="Sector">
-      {{ toTitleCase(company.Sector) }} | {{ toTitleCase(company.Industry) }}
-    </div>
+    @if (company().Sector) {
+      <div class="item" title="Sector">
+        {{ toTitleCase(company().Sector ?? '') }} | {{ toTitleCase(company().Industry ?? '') }}
+      </div>
+    }
 
     <!-- Company's stock asset type -->
-    <div *ngIf="company.AssetType" class="item" title="Asset Type">
-      {{ company.AssetType }}
+    @if (company().AssetType) {
+      <div class="item" title="Asset Type">
+        {{ company().AssetType }}
+      </div>
+    }
   </div>
 
 </div>
