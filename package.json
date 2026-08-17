@@ -3,10 +3,16 @@
   "version": "1.0.0",
   "scripts": {
     "ng": "ng",
+    "gen-flare-env": "node scripts/gen-flare-env.mjs",
+    "prestart": "npm run gen-flare-env",
     "start": "netlify dev",
+    "preserve": "npm run gen-flare-env",
     "serve": "ng serve",
+    "prebuild": "npm run gen-flare-env",
     "build": "ng build",
+    "prewatch": "npm run gen-flare-env",
     "watch": "ng build --watch --configuration development",
+    "pretest": "npm run gen-flare-env",
     "test": "ng test",
     "lint": "ng lint",
     "refresh-tickers": "node --env-file-if-exists=.env scripts/refresh-tickers.mjs"
