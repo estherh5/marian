@@ -13,4 +13,6 @@ Committed doc, not scratch. Kept current by hand as work ships.
 
 - [security] **Dead tickerapi.com key in public history (Low).** `src/app/search/search.service.ts` (commit 2bcbdbe, hash12 d0c86761209f); provider removed in e469afc. Fix: revoke it on tickerapi.com if the account exists.
 
-- [security] **Public unauthenticated API proxies (Low).** `netlify/functions/{company,daily,news,quote}.mjs` proxy Alpha Vantage/Finnhub, so anyone can burn the free-tier quota. Fix: cache headers or a basic rate limit.
+## Shipped
+
+- 2026-09 — [security] **API proxies no longer burn quota per call.** `netlify/functions/_lib.mjs#proxyJson` caches good responses on Netlify's CDN (quote 60s, daily/news 1h, company 24h) and never caches upstream rate-limit/error bodies; `getSymbol` rejects non-ticker input before any upstream call. Tests: `npm run test:functions`.
