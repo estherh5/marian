@@ -9,6 +9,8 @@ Committed doc, not scratch. Kept current by hand as work ships.
 
 ## Shipped
 
+- **2026-10** [security] Dependabot on: alerts enabled, `.github/dependabot.yml` (weekly npm, minor+patch grouped, 3-day cooldown), `npm audit fix` cleared 44 of 44 alerts; nothing left (`npm audit`: 0 vulnerabilities).
+
 - 2026-09 — [security] **API proxies no longer burn quota per call.** `netlify/functions/_lib.mjs#proxyJson` caches good responses on Netlify's CDN (quote 60s, daily/news 1h, company 24h) and never caches upstream rate-limit/error bodies; `getSymbol` rejects non-ticker input before any upstream call. Tests: `npm run test:functions`.
 
 ## Declined
