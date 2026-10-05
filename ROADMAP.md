@@ -11,6 +11,7 @@ Committed doc, not scratch. Kept current by hand as work ships.
 
 ## Shipped
 
+- **2026-10** Flare reports now carry a wrapped error's `params` and its `cause` chain (`errorDetail` in `src/app/flare/flare.ts`, ported from the Next template), with the template's six cases in `src/app/flare/flare.spec.ts`. Gates green: `ng test` 19/19, lint, build.
 - **2026-10** Dev-tooling majors: vitest 5.0.3 (#80), jsdom 30.1.1 (#78), eslint 10.11.0 (#77, plus `@eslint/js@10` now declared directly since eslint 10 no longer ships it). Gates green: `ng test` 13/13, `test:functions` 7/7, lint, build.
 
 - **2026-10** [security] Dependabot on: alerts enabled, `.github/dependabot.yml` (weekly npm, minor+patch grouped, 3-day cooldown), `npm audit fix` cleared 44 of 44 alerts; nothing left (`npm audit`: 0 vulnerabilities).
