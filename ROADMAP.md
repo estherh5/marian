@@ -20,6 +20,7 @@ Committed doc, not scratch. Kept current by hand as work ships.
 
 ## Declined
 
+- 2026-10 — **TypeScript 7 (Dependabot #79).** `ng build` fails at once: `Angular compilation initialization failed. TypeError: Cannot read properties of undefined (reading 'Error')` in `@angular/build`'s `typescript-compilation.js`, which peers `typescript@">=6.0 <6.1"`. Un-decline when an `@angular/build` release widens its typescript peer range to 7.
 - **Narrow `ALPHAVANTAGE_KEY` and `FINNHUB_KEY` to the Functions scope (2026-09-30).** Only `netlify/functions/*` read them, so dropping the Builds scope would keep them from build-time npm scripts. Netlify locks "Specific scopes" behind a paid plan ("Upgrade to unlock"), so both stay on Builds, Functions, Runtime. Both are production-only, and Deploy Previews are empty. Revisit only if marian moves to a paid Netlify plan.
 - 2026-09 — [security] **Deactivate the old Alpha Vantage key.** Nothing to deactivate: Alpha Vantage serves real data for *any* key string (verified 2026-09-29, `GLOBAL_QUOTE` for MSFT returned a live quote with the made-up key `ZZZZINVALID0000` and with the leaked key alike), so the key in public history (hash12 978a2f46ada9) grants nothing an arbitrary string doesn't.
 - 2026-09 — [security] **Revoke the dead tickerapi.com key.** The provider is gone: `tickerapi.com` has no A, NS or SOA record (checked via 1.1.1.1 and 8.8.8.8, 2026-09-29), so no account or endpoint exists to accept or revoke the key (hash12 d0c86761209f).
