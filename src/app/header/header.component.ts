@@ -21,34 +21,34 @@ export class HeaderComponent {
   readonly projects: Project[] = [
     { link: 'https://crystalprism.io/', title: 'Home', favicon: 'https://crystalprism.io/favicon.ico' },
     {
-      link: 'https://crystalprism.io/timespace/',
+      link: 'https://timespace.crystalprism.io/',
       title: 'Timespace',
-      favicon: 'https://crystalprism.io/timespace/favicon.ico',
+      favicon: 'https://timespace.crystalprism.io/favicon.ico',
     },
     {
-      link: 'https://crystalprism.io/shapes-in-rain/',
+      link: 'https://shapes-in-rain.crystalprism.io/',
       title: 'Shapes in Rain',
-      favicon: 'https://crystalprism.io/shapes-in-rain/favicon.ico',
+      favicon: 'https://shapes-in-rain.crystalprism.io/favicon.ico',
     },
     {
-      link: 'https://crystalprism.io/rhythm-of-life/',
+      link: 'https://rhythm-of-life.crystalprism.io/',
       title: 'Rhythm of Life',
-      favicon: 'https://crystalprism.io/rhythm-of-life/favicon.ico',
+      favicon: 'https://rhythm-of-life.crystalprism.io/favicon.ico',
     },
     {
-      link: 'https://crystalprism.io/canvashare/',
+      link: 'https://canvashare.crystalprism.io/',
       title: 'CanvaShare',
-      favicon: 'https://crystalprism.io/canvashare/favicon.ico',
+      favicon: 'https://canvashare.crystalprism.io/favicon.ico',
     },
     {
-      link: 'https://crystalprism.io/thought-writer/',
+      link: 'https://thought-writer.crystalprism.io/',
       title: 'Thought Writer',
-      favicon: 'https://crystalprism.io/thought-writer/favicon.ico',
+      favicon: 'https://thought-writer.crystalprism.io/favicon.ico',
     },
     {
-      link: 'https://crystalprism.io/vicarious/',
+      link: 'https://vicarious.crystalprism.io/',
       title: 'Vicarious',
-      favicon: 'https://crystalprism.io/vicarious/favicon.ico',
+      favicon: 'https://vicarious.crystalprism.io/favicon.ico',
     },
     {
       link: 'https://hn-stats.crystalprism.io/',
@@ -63,7 +63,7 @@ export class HeaderComponent {
     },
     { link: 'https://vroom.crystalprism.io/', title: 'Vroom', favicon: 'https://vroom.crystalprism.io/favicon.ico' },
     {
-      link: 'https://crystalprism.io/user/sign-in/',
+      link: 'https://account.crystalprism.io/sign-in/',
       title: 'Account',
       favicon: 'https://crystalprism.io/favicon.ico',
     },
