@@ -1,5 +1,6 @@
+/* Scrolls with the page: fixed, it sat transparent over the content. */
 #title {
-  position: fixed;
+  position: absolute;
   top: 0;
   right: 68px;
   outline: none !important;
