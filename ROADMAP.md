@@ -7,6 +7,7 @@ Committed doc, not scratch. Kept current by hand as work ships.
 
 ## Next
 
+- **A rising stock can show in red.** `getPriceHistory` in `AppComponent` sets `isRising` by comparing the live price with the last close in Alpha Vantage's daily series, but that series already includes today, so on 2026-10-12 AAPL showed `+$4.33 +1.29%` in `.down` red. The Finnhub quote's own change (`data.d` in `getCurrentPrice`) gives the direction directly. The cached-history branch compares against `length - 2`, so the two paths disagree today.
 - [from 2026-10-17] **Upgrade typescript to 7.** Held 2026-10-05: peer ranges cap below 7 — `typescript-eslint@8.71.0` requires `typescript >=4.8.4 <6.1.0` and `@angular/build@22.2` requires `typescript >=6.0 <6.1` (Dependabot #79). Retry when both typescript-eslint and @angular/build publish a release whose typescript peer range admits 7.x.
 
 ## Shipped
