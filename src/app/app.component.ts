@@ -210,7 +210,11 @@ export class AppComponent implements OnInit {
   // Get the current price for the specified stock.
   getCurrentPrice(symbol: string): void {
     this.stockService.getCurrentPrice(symbol).subscribe((data) => {
-      this.patchStock(symbol, { price: data.c, change: data.d, changePercent: data.dp });
+      // The quote's own change gives the day's direction. Alpha Vantage's daily
+      // series already holds today's close, so comparing against it can't.
+      // Finnhub sends a null change for a symbol it doesn't know.
+      const isRising = typeof data.d === 'number' ? data.d >= 0 : null;
+      this.patchStock(symbol, { price: data.c, change: data.d, changePercent: data.dp, isRising });
     });
   }
 
@@ -235,10 +239,7 @@ export class AppComponent implements OnInit {
           }))
           .reverse();
 
-        // Determine whether the price is rising vs. the previous day's close.
-        const isRising = (stock.price ?? 0) > apiData[apiData.length - 1].close;
-
-        this.patchStock(symbol, { priceHistory: apiData, isRising, updateChart: true });
+        this.patchStock(symbol, { priceHistory: apiData, updateChart: true });
 
         // Cache the history so it can be reloaded if the API rate-limits us.
         sessionStorage.setItem(symbol, JSON.stringify(apiData));
@@ -252,8 +253,7 @@ export class AppComponent implements OnInit {
             volume: point['volume'] as number,
             dividend: point['dividend'] as number,
           }));
-          const isRising = (stock.price ?? 0) > priceHistory[priceHistory.length - 2].close;
-          this.patchStock(symbol, { priceHistory, isRising, updateChart: true });
+          this.patchStock(symbol, { priceHistory, updateChart: true });
         }
       }
     });
