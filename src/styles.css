@@ -112,3 +112,55 @@ input[type="button"] {
   text-align: center;
   cursor: pointer;
 }
+
+/* Fleet apps menu + footer (src/fleet/, vendored byte-identical). marian has
+   no CSS variables, so these are literals from its palette. The accent is a
+   deep shade of marian's #21c6ce: the cyan itself is 2.1:1 on white, too faint
+   for the trigger, the current-app ring and the focus outline (#0b7077 is
+   5.8:1 on white and carries white text at 5.8:1). */
+:root {
+  --fleet-accent: #0b7077;
+  --fleet-on-accent: #ffffff;
+  --fleet-surface: #ffffff;
+  --fleet-ink: #000000;
+  --fleet-muted: #404040;
+  --fleet-line: #dcdcdc;
+  --fleet-font: 'Open Sans', sans-serif;
+  --fleet-radius: 12px;
+  --fleet-footer-clear: 0px;
+}
+
+/* No global border-box here, so the 360px panel would paint wider. */
+.fleet-panel, .fleet-panel *, .fleet-footer, .fleet-trigger {
+  box-sizing: border-box;
+}
+
+/* The global button, a:hover and :focus rules above are marian's cyan; keep
+   them off the kit, where they would drop the trigger to 1.9:1 and the tile
+   and footer labels to cyan on white. */
+.fleet-trigger {
+  padding: 0;
+}
+
+.fleet-trigger:hover {
+  background-color: var(--fleet-accent);
+}
+
+.fleet-trigger:focus {
+  border: 1px solid var(--fleet-line);
+  border-radius: 999px;
+}
+
+.fleet-app:hover, .fleet-footer a:hover {
+  color: inherit;
+}
+
+.fleet-panel a:focus, .fleet-footer a:focus {
+  outline: 2px solid var(--fleet-accent);
+  outline-offset: 2px;
+}
+
+/* The data credits sit directly above the kit footer as one block. */
+#footer .fleet-footer {
+  padding-top: 8px;
+}
