@@ -51,20 +51,22 @@
   margin-left: 5px;
 }
 
+/* Price-change ink: #05d405 was 2.0:1 and #ff0000 4.0:1 on white; these are
+   4.5:1 and 5.9:1, and hover goes darker like the links. */
 .up {
-  color: #05d405;
+  color: #078a07;
 }
 
 a:hover .up {
-  color: #07ff07;
+  color: #066e06;
 }
 
 .down {
-  color: #ff0000;
+  color: #cc0000;
 }
 
 a:hover .down {
-  color: #ff634a;
+  color: #990000;
 }
 
 .price-container {

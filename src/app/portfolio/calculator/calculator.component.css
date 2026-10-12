@@ -43,8 +43,9 @@ input[type=date]:invalid::-webkit-datetime-edit {
   visibility: visible;
 }
 
+/* #ff0000 was 4.0:1 on white; this is .down's red at 5.9:1. */
 .error {
-  color: #ff0000;
+  color: #cc0000;
 }
 
 .pb-7 {

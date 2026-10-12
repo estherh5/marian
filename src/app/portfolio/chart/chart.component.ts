@@ -19,9 +19,11 @@ import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import { PriceData } from '../../pricedata';
 import { Stock } from '../../stock';
 
-const SERIES_COLOR = 0x21c6ce;
-const UP_COLOR = 0x05d405;
-const DOWN_COLOR = 0xff0000;
+// Each clears 3:1 on the white plot: the deep shade of marian's cyan (5.8:1;
+// #21c6ce was 2.1:1), and the green and red of .up/.down (4.5:1, 5.9:1).
+const SERIES_COLOR = 0x0b7077;
+const UP_COLOR = 0x078a07;
+const DOWN_COLOR = 0xcc0000;
 
 @Component({
   selector: 'app-chart',

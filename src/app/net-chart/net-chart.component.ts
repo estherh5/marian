@@ -32,11 +32,14 @@ interface NetSeries {
   points: NetPoint[];
 }
 
+// Every line clears 3:1 on the white plot. The yellow, light gray, gray and
+// bright green (1.4-2.9:1) became goldenrod, gray, purple and orange; green
+// is left to the Net line.
 const COLORS = [
-  0xfcd202, 0x0d8ecf, 0x2a0cd0, 0xcd0d74, 0xcc0000, 0x00cc00, 0x0000cc, 0xdddddd, 0x999999, 0x333333,
+  0xb8860b, 0x0d8ecf, 0x2a0cd0, 0xcd0d74, 0xcc0000, 0xd35400, 0x0000cc, 0x767676, 0x8e44ad, 0x333333,
   0x990000,
 ];
-const NET_COLOR = 0x05d405;
+const NET_COLOR = 0x078a07;
 
 @Component({
   selector: 'app-net-chart',
