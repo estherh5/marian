@@ -160,6 +160,11 @@ input[type="button"] {
   outline-offset: 2px;
 }
 
+/* The global :focus 4px radius would square off a focused tile. */
+.fleet-app:focus {
+  border-radius: calc(var(--fleet-radius) * 0.6);
+}
+
 /* The data credits sit directly above the kit footer as one block. */
 #footer .fleet-footer {
   padding-top: 8px;
