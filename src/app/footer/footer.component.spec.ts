@@ -42,4 +42,10 @@ describe('FooterComponent', () => {
     const hrefs = Array.from(root.querySelectorAll('.credits a')).map((a) => a.getAttribute('href'));
     expect(hrefs).toEqual(['https://www.alphavantage.co/', 'https://finnhub.io/', 'https://www.algolia.com/']);
   });
+
+  it('sets every credit link on the white plate, not the bare background', () => {
+    const links = Array.from(root.querySelectorAll('.credits a'));
+    expect(links.length).toBe(3);
+    expect(links.every((a) => a.closest('.credits-plate'))).toBe(true);
+  });
 });
