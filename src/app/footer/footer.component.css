@@ -24,8 +24,8 @@
   color: var(--fleet-accent);
 }
 
-/* Underline instead of the global paler #25e1ea hover, and a 2px ring
-   instead of the 1px cyan outline. */
+/* Underline on hover, since the ink cannot get darker on the plate, and a
+   2px ring. */
 .credits a:hover {
   color: var(--fleet-accent);
   text-decoration: underline;

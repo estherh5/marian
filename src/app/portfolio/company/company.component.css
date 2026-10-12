@@ -34,7 +34,7 @@
   -webkit-align-items: center;
   -ms-flex-align: center;
   align-items: center;
-  background-color: #21c6ce;
+  background-color: #0b7077;
   color: #ffffff;
   text-align: center;
 }
@@ -43,6 +43,8 @@
   color: #ffffff;
 }
 
+/* Gray on the chip is 3.9:1, so hover underlines and stays white (5.8:1). */
 .item a:hover {
-  color: #d2d2d2;
+  color: #ffffff;
+  text-decoration: underline;
 }
