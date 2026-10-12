@@ -7,6 +7,8 @@ Committed doc, not scratch. Kept current by hand as work ships.
 
 ## Next
 
+- **Data-credit links fail contrast.** The cyan credit links read ~2:1 on white; darken them (the fleet accent `#0b7077` already passes). Pre-existing, seen in the 2026-10-12 fleet menu rollout.
+- **Fixed `#title` overlaps content on scroll.** The fixed title sits on top of the page as it scrolls under it; give it a background or reserve its height. Pre-existing, seen in the 2026-10-12 fleet menu rollout.
 - [from 2026-10-17] **Upgrade typescript to 7.** Held 2026-10-05: peer ranges cap below 7 — `typescript-eslint@8.71.0` requires `typescript >=4.8.4 <6.1.0` and `@angular/build@22.2` requires `typescript >=6.0 <6.1` (Dependabot #79). Retry when both typescript-eslint and @angular/build publish a release whose typescript peer range admits 7.x.
 
 ## Shipped
