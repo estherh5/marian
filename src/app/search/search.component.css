@@ -55,7 +55,7 @@
 }
 
 .important {
-  color: #21c6ce;
+  color: #0b7077;
 }
 
 .landing {
@@ -139,13 +139,13 @@
   margin-bottom: 10px;
   display: none;
   background-color: #ffffff;
-  color: #21c6ce;
+  color: #0b7077;
   text-align: left;
   overflow: scroll;
 }
 
 .stocks-list tr {
-  color: #21c6ce;
+  color: #0b7077;
   cursor: pointer;
 }
 

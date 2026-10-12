@@ -21,14 +21,17 @@ h1 {
   font-size: 24px;
 }
 
+/* Link ink is the deep shade of marian's #21c6ce (see the fleet block
+   below): the cyan is 2.1:1 on white. #0b7077 is 5.8:1 on white and 4.9:1
+   on the #eaeaea search-row highlight; hover goes darker, never paler. */
 a, .stock-name {
-  color: #21c6ce;
+  color: #0b7077;
   text-decoration: none;
   cursor: pointer;
 }
 
 a:hover, .stock-name:hover {
-  color: #25e1ea;
+  color: #085a60;
 }
 
 input {
@@ -50,9 +53,8 @@ input {
 
 a:focus {
   border: none;
-  outline-color: #21c6ce;
-  outline-style: solid;
-  outline-width: 1px;
+  outline: 2px solid #0b7077;
+  outline-offset: 2px;
 }
 
 a[href="http://www.amcharts.com"] {
