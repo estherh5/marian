@@ -145,12 +145,9 @@ input[type="button"] {
 
 /* The trigger (triggerClass marian-fleet-trigger) wears marian's own button,
    the global `button` rule above: teal fill, 4px radius, darker on hover, the
-   2px focus ring, no press. That rule sets no transform or transition, so these
-   reset the kit's fallback press, and drop its text padding for a 44px icon. */
+   2px focus ring, no press. This drops its text padding for a 44px icon. */
 .fleet-trigger.marian-fleet-trigger {
   padding: 0;
-  transform: initial;
-  transition: initial;
 }
 
 /* Keep the global a:hover and :focus rules above off the panel and footer:
