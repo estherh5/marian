@@ -26,12 +26,17 @@ describe('FooterComponent', () => {
     const links = Array.from(footers[0].querySelectorAll('a'));
     expect(links.map((a) => a.textContent)).toEqual([
       `© 2017–${new Date().getFullYear()} Crystal Prism`,
-      'All apps',
     ]);
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
       'https://crystalprism.io',
-      'https://crystalprism.io/#projects',
     ]);
+  });
+
+  it('has no All apps link or separator', () => {
+    const footer = root.querySelector('footer.fleet-footer')!;
+    expect(footer.textContent).not.toContain('All apps');
+    expect(footer.querySelector('a[href="https://crystalprism.io/#projects"]')).toBeNull();
+    expect(footer.querySelector('span[aria-hidden="true"]')).toBeNull();
   });
 
   it('drops the old copyright line', () => {
