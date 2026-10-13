@@ -25,7 +25,13 @@ interface FleetKitApi {
   getFleetApps(currentKey: string, opts?: { url?: string; fallback?: unknown }): Promise<FleetEntry[]>;
   mountMenu(
     container: HTMLElement,
-    opts: { apps: FleetEntry[]; user: null; rows: never[]; placement: 'down-end' | 'up-start' },
+    opts: {
+      apps: FleetEntry[];
+      user: null;
+      rows: never[];
+      placement: 'down-end' | 'up-start';
+      triggerClass?: string;
+    },
   ): FleetMenuHandle;
   renderFooter(parent: HTMLElement): HTMLElement;
 }

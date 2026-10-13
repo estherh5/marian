@@ -126,11 +126,9 @@ input[type="button"] {
 /* Fleet apps menu + footer (src/fleet/, vendored byte-identical). marian has
    no CSS variables, so these are literals from its palette. The accent is a
    deep shade of marian's #21c6ce: the cyan itself is 2.1:1 on white, too faint
-   for the trigger, the current-app ring and the focus outline (#0b7077 is
-   5.8:1 on white and carries white text at 5.8:1). */
+   for the current-app ring and the focus outline (#0b7077 is 5.8:1 on white). */
 :root {
   --fleet-accent: #0b7077;
-  --fleet-on-accent: #ffffff;
   --fleet-surface: #ffffff;
   --fleet-ink: #000000;
   --fleet-muted: #404040;
@@ -145,22 +143,18 @@ input[type="button"] {
   box-sizing: border-box;
 }
 
-/* Keep the global button, a:hover and :focus rules above off the kit: they
-   would darken the trigger on hover, square its focus border and tint the
-   tile and footer labels. */
-.fleet-trigger {
+/* The trigger (triggerClass marian-fleet-trigger) wears marian's own button,
+   the global `button` rule above: teal fill, 4px radius, darker on hover, the
+   2px focus ring, no press. That rule sets no transform or transition, so these
+   reset the kit's fallback press, and drop its text padding for a 44px icon. */
+.fleet-trigger.marian-fleet-trigger {
   padding: 0;
+  transform: initial;
+  transition: initial;
 }
 
-.fleet-trigger:hover {
-  background-color: var(--fleet-accent);
-}
-
-.fleet-trigger:focus {
-  border: 1px solid var(--fleet-line);
-  border-radius: 999px;
-}
-
+/* Keep the global a:hover and :focus rules above off the panel and footer:
+   they would tint the tile and footer labels. */
 .fleet-app:hover, .fleet-footer a:hover {
   color: inherit;
 }

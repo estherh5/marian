@@ -18,6 +18,7 @@ export class HeaderComponent implements AfterViewInit, OnDestroy {
       user: null,
       rows: [],
       placement: 'down-end',
+      triggerClass: 'marian-fleet-trigger',
     });
     this.menu = menu;
     kit.getFleetApps(FLEET_KEY, { fallback: FLEET_FALLBACK }).then((apps) => {

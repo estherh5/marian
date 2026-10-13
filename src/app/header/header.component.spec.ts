@@ -29,6 +29,14 @@ describe('HeaderComponent', () => {
     expect(triggers[0].getAttribute('aria-label')).toBe('Apps and sign in');
   });
 
+  it("dresses the trigger as marian's own button around the prism glyph", async () => {
+    await render(false);
+    const trigger = root.querySelector('.fleet-trigger')!;
+    expect(trigger.classList.contains('marian-fleet-trigger')).toBe(true);
+    expect(trigger.querySelector('svg')).not.toBeNull();
+    expect(trigger.textContent).toBe('');
+  });
+
   it('removes the old site menu', async () => {
     await render(false);
     expect(root.querySelector('#site-menu')).toBeNull();
