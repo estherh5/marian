@@ -7,7 +7,7 @@ Committed doc, not scratch. Kept current by hand as work ships.
 
 ## Next
 
-- [from 2026-10-17] **Upgrade typescript to 7.** Held 2026-10-05: peer ranges cap below 7 — `typescript-eslint@8.71.0` requires `typescript >=4.8.4 <6.1.0` and `@angular/build@22.2` requires `typescript >=6.0 <6.1` (Dependabot #79). Retry when both typescript-eslint and @angular/build publish a release whose typescript peer range admits 7.x.
+- [from 2026-11-17] **Upgrade typescript to 7.** Held 2026-10-05: peer ranges cap below 7 — `typescript-eslint@8.71.0` requires `typescript >=4.8.4 <6.1.0` and `@angular/build@22.2` requires `typescript >=6.0 <6.1` (Dependabot #79). Retry when both typescript-eslint and @angular/build publish a release whose typescript peer range admits 7.x. Rechecked 2026-10-17: `typescript-eslint` 8.71.2 still peers `typescript <6.1.0` and `@angular/build` 22.2.3 still peers `>=6.0 <6.1`.
 
 ## Shipped
 
