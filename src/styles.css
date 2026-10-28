@@ -114,6 +114,23 @@ h1 {
   cursor: default;
 }
 
+/* Two steps: a stock's name and Net Equity (h2) lead at 24px; the sections
+   inside a card (h3) sit at 16px/600, above the 12-14px body. */
+h2.section-title,
+h3.section-title {
+  margin: 0;
+}
+
+h2.section-title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+h3.section-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
 input[type="button"] {
   width: fit-content;
   padding: 3px;

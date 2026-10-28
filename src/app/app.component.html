@@ -45,7 +45,9 @@
 <!-- Undo the last removal -->
 <div class="undo-bar" [class.open]="removed() || netChartNotice()" role="status" aria-live="polite">
   @if (removed(); as last) {
-    @if (last.stocks.length === 1) {
+    @if (last.kind === 'share') {
+      <span>Removed a purchase of {{ last.symbol }}.</span>
+    } @else if (last.stocks.length === 1) {
       <span>Removed {{ last.stocks[0].name }} ({{ last.stocks[0].symbol }}).</span>
     } @else {
       <span>Cleared {{ last.stocks.length }} stocks.</span>

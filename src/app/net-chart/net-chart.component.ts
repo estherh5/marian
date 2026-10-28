@@ -8,6 +8,7 @@ import {
   NgZone,
   OnDestroy,
   output,
+  signal,
   viewChild,
 } from '@angular/core';
 
@@ -31,6 +32,16 @@ interface NetSeries {
   color: number;
   points: NetPoint[];
 }
+
+/** What the purchases are worth at the latest close, and since when. */
+export interface NetSummary {
+  value: string;
+  gain: string;
+  isRising: boolean;
+  since: string;
+}
+
+const USD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
 // Every line clears 3:1 on the white plot. The yellow, light gray, gray and
 // bright green (1.4-2.9:1) became goldenrod, gray, purple and orange; green
@@ -59,6 +70,7 @@ export class NetChartComponent implements AfterViewInit, DoCheck, OnDestroy {
   readonly toolbarDiv = viewChild.required<ElementRef<HTMLElement>>('toolbar');
 
   type: AxisType = 'percent';
+  readonly summary = signal<NetSummary | null>(null);
   private root?: am5.Root;
   private built = false;
   private disposed = false;
@@ -119,7 +131,7 @@ export class NetChartComponent implements AfterViewInit, DoCheck, OnDestroy {
   price point. The math mirrors the original chart: dividends fold into close
   price, each share contributes (close - cost) * shares, and percent is net
   equity over the amount invested. */
-  private computeSeries(): { series: NetSeries[]; net: NetPoint[] | null } {
+  private computeSeries(): { series: NetSeries[]; net: NetPoint[] | null; summary: NetSummary | null } {
     const isPercent = this.type === 'percent';
     let stocks = structuredClone(this.selectedStocks());
 
@@ -145,6 +157,9 @@ export class NetChartComponent implements AfterViewInit, DoCheck, OnDestroy {
 
     const series: NetSeries[] = [];
     const allPoints: PriceData[] = [];
+    // Each stock's equity and amount invested at its latest close.
+    let gain = 0;
+    let invested = 0;
     const tzOffset = -(new Date().getTimezoneOffset() / 60);
 
     stocks.forEach((stock, i) => {
@@ -197,6 +212,10 @@ export class NetChartComponent implements AfterViewInit, DoCheck, OnDestroy {
         allPoints.push(price);
       });
 
+      const latest = stock.priceHistory.at(-1);
+      gain += latest?.close ?? 0;
+      invested += latest?.invested ?? 0;
+
       series.push({ title: stock.symbol, color: COLORS[i % COLORS.length], points });
     });
 
@@ -222,11 +241,26 @@ export class NetChartComponent implements AfterViewInit, DoCheck, OnDestroy {
         }));
     }
 
-    return { series, net };
+    return { series, net, summary: stocks.length ? this.summarize(gain, invested, stocks[0].shares[0].date as string) : null };
+  }
+
+  // "$910.40", "+$211.80 (+30.3%)", "since Jul 15": the headline over the line.
+  private summarize(gain: number, invested: number, firstDate: string): NetSummary {
+    const sign = gain < 0 ? '-' : '+';
+    const percent = invested ? Math.abs((gain / invested) * 100).toFixed(1) : '0.0';
+    const first = new Date(firstDate);
+    const sameYear = first.getFullYear() === new Date().getFullYear();
+    return {
+      value: USD.format(invested + gain),
+      gain: `${sign}${USD.format(Math.abs(gain))} (${sign}${percent}%)`,
+      isRising: gain >= 0,
+      since: first.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: sameYear ? undefined : 'numeric' }),
+    };
   }
 
   private createChart(): void {
-    const { series, net } = this.computeSeries();
+    const { series, net, summary } = this.computeSeries();
+    this.summary.set(summary);
     if (series.length === 0) {
       return;
     }
@@ -263,6 +297,8 @@ export class NetChartComponent implements AfterViewInit, DoCheck, OnDestroy {
       );
 
       const legend = panel.plotContainer.children.push(am5stock.StockLegend.new(root, { stockChart }));
+      // The gear opens amCharts' series settings, which nothing here uses.
+      legend.settingsButtons.template.set('forceHidden', true);
       const tooltipText = isPercent ? "{name}: {valueY.formatNumber('#,##0.0')}%" : '{name}: ${valueY}';
 
       const addSeries = (def: NetSeries): am5xy.LineSeries => {

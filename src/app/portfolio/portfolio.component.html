@@ -2,7 +2,7 @@
 
 <!-- Stock title -->
 @if (stock.name !== '') {
-  <h1 [ngClass]="{'collapsed': stock.isCollapsed, 'stock-name': true, 'section-title': true}">
+  <h2 [ngClass]="{'collapsed': stock.isCollapsed, 'stock-name': true, 'section-title': true}">
 
     <!-- Collapse/expand the stock's card -->
     <button
@@ -60,7 +60,7 @@
     <button type="button" class="remove" (click)="removeStock(stock)" [attr.aria-label]="'Remove ' + stock.name" title="Remove stock">
       <i class="fas fa-times" aria-hidden="true"></i>
     </button>
-  </h1>
+  </h2>
 }
 
 <div id="{{ stock.symbol }}-body" [ngClass]="{'hidden': stock.isCollapsed}">
@@ -80,7 +80,7 @@
     </app-chart>
   } @else {
     <section class="slot">
-      <h1 class="section-title">Price</h1>
+      <h3 class="section-title">Price</h3>
       @if (stock.load.history === 'loading') {
         <div class="skeleton chart-skeleton" role="status">
           <span class="skeleton-label">Loading 100 days of prices…</span>
@@ -99,7 +99,7 @@
     <app-company [company]="stock.company"></app-company>
   } @else {
     <section class="slot">
-      <h1 class="section-title">About</h1>
+      <h3 class="section-title">About</h3>
       @if (stock.load.company === 'ready') {
         <p class="empty" role="status">No company details for {{ stock.symbol }}.</p>
       } @else if (stock.load.company === 'loading') {
@@ -126,7 +126,7 @@
     </app-news>
   } @else {
     <section class="slot">
-      <h1 class="section-title">Recent News</h1>
+      <h3 class="section-title">Recent News</h3>
       @switch (stock.load.news) {
         @case ('loading') {
           <div class="skeleton-news" role="status">

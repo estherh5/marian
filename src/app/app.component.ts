@@ -15,6 +15,10 @@ import { NetChartComponent } from './net-chart/net-chart.component';
 import { PortfolioComponent } from './portfolio/portfolio.component';
 import { SearchComponent } from './search/search.component';
 
+type Removal =
+  | { kind: 'stocks'; stocks: Stock[]; index: number }
+  | { kind: 'share'; symbol: string; share: Share; index: number };
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -38,9 +42,9 @@ export class AppComponent implements OnInit {
   // Whether the net equity chart should be updated.
   updateNetChart = false;
 
-  // The stocks removed last (one, or all by Clear), kept for a few seconds so
-  // the removal can be undone.
-  readonly removed = signal<{ stocks: Stock[]; index: number } | null>(null);
+  // What was removed last (one stock, all of them by Clear, or one typed
+  // purchase), kept for a few seconds so the removal can be undone.
+  readonly removed = signal<Removal | null>(null);
   private undoTimer: ReturnType<typeof setTimeout> | undefined;
 
   // Set for a few seconds when the net equity chart first appears, since it
@@ -443,9 +447,10 @@ export class AppComponent implements OnInit {
   removeShare(removal: { symbol: string; index: number }): void {
     const stocks = this.selectedStocks();
     const stockIndex = stocks.findIndex((obj) => obj.symbol === removal.symbol);
-    const numberOfShares = stocks[stockIndex].shares.length;
+    const stock = stocks[stockIndex];
+    const numberOfShares = stock.shares.length;
 
-    stocks[stockIndex].shares.splice(removal.index, 1);
+    const [share] = stock.shares.splice(removal.index, 1);
     this.selectedStocks.set([...stocks]);
     this.save();
 
@@ -454,6 +459,11 @@ export class AppComponent implements OnInit {
       this.addNewShare(removal.symbol);
     } else {
       this.displayNetChart();
+    }
+
+    // A blank row holds nothing to lose; a typed purchase gets an Undo.
+    if (share.date || share.number != null || share.price != null) {
+      this.offerUndo({ kind: 'share', symbol: stock.symbol, share, index: removal.index });
     }
   }
 
@@ -477,6 +487,10 @@ export class AppComponent implements OnInit {
     }
 
     // Offer an undo: the cards may hold shares the user typed in.
+    this.offerUndo({ kind: 'stocks', ...removed });
+  }
+
+  private offerUndo(removed: Removal): void {
     clearTimeout(this.undoTimer);
     this.removed.set(removed);
     this.undoTimer = setTimeout(() => this.removed.set(null), 8000);
@@ -490,7 +504,7 @@ export class AppComponent implements OnInit {
     document.getElementById('net-equity')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
   }
 
-  // Put the last removed stock back where it was.
+  // Put the last removed stock, or purchase, back where it was.
   undoRemove(): void {
     const removed = this.removed();
     if (!removed) {
@@ -498,12 +512,31 @@ export class AppComponent implements OnInit {
     }
     clearTimeout(this.undoTimer);
     this.removed.set(null);
+    if (removed.kind === 'share') {
+      this.restoreShare(removed);
+      return;
+    }
     this.isLandingPage = false;
     this.selectedStocks.update((stocks) => {
       const next = [...stocks];
       next.splice(removed.index, 0, ...removed.stocks.map((stock) => ({ ...stock, updateChart: true })));
       return next;
     });
+    this.save();
+    this.displayNetChart();
+  }
+
+  // The stock may have gone, or lost rows, since; then the purchase goes back
+  // as near its old place as the rows allow, or not at all.
+  private restoreShare({ symbol, share, index }: Extract<Removal, { kind: 'share' }>): void {
+    const stock = this.selectedStocks().find((obj) => obj.symbol === symbol);
+    if (!stock) {
+      return;
+    }
+    // A new shares array, so the card's calculator renders the row again.
+    const shares = [...stock.shares];
+    shares.splice(Math.min(index, shares.length), 0, share);
+    this.patchStock(symbol, { shares });
     this.save();
     this.displayNetChart();
   }

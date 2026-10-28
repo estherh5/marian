@@ -1,6 +1,15 @@
 <div class="chart-container">
   <div class="title-row">
-    <h1 class="section-title">Net Equity</h1>
+    <div class="heading">
+      <h2 class="section-title">Net Equity</h2>
+      @if (summary(); as net) {
+        <p class="figure">
+          <span class="value">{{ net.value }}</span>
+          <span [class.up]="net.isRising" [class.down]="!net.isRising">{{ net.gain }}</span>
+          since {{ net.since }}
+        </p>
+      }
+    </div>
 
     <!-- Show the y-axis as a percent change or in dollars -->
     <div class="units" role="group" aria-label="Units">

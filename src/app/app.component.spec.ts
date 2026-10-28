@@ -120,6 +120,26 @@ describe('AppComponent load states', () => {
     expect(app.removed()).toBeNull();
   });
 
+  it('undoes a removed purchase back into its row, and offers no undo for a blank row', () => {
+    const { app } = load({});
+    const shares = () => app.selectedStocks()[0].shares;
+    shares()[0] = { ...shares()[0], date: '2026/10/01', number: 3, price: 1 };
+    app.addNewShare('AAPL');
+    expect(shares().length).toBe(2);
+
+    app.removeShare({ symbol: 'AAPL', index: 1 });
+    expect(app.removed()).toBeNull();
+
+    app.removeShare({ symbol: 'AAPL', index: 0 });
+    expect(app.removed()).toMatchObject({ kind: 'share', symbol: 'AAPL', index: 0 });
+    expect(shares().map((s) => s.number)).toEqual([null]);
+
+    app.undoRemove();
+    expect(shares().map((s) => s.number)).toEqual([3, null]);
+    expect(app.removed()).toBeNull();
+    expect(JSON.parse(localStorage.getItem('marian.portfolio') ?? '[]')[0].shares[0]).toMatchObject({ number: 3 });
+  });
+
   it('restores the saved portfolio on load, purchases and all, and charts them', () => {
     localStorage.setItem('marian.portfolio', JSON.stringify([
       { symbol: 'AAPL', name: 'Apple Inc', shares: [{ date: '2026/10/01', number: 3, price: 1 }] },

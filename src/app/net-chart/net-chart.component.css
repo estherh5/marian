@@ -26,6 +26,30 @@
   gap: 12px;
 }
 
+/* The figure reads as the answer under the title: the value in ink, the gain
+   in the cards' up/down colors, the date in muted text. */
+.figure {
+  margin: 2px 0 0;
+  color: #595959;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.value {
+  margin-right: 6px;
+  color: #000000;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.up {
+  color: #078a07;
+}
+
+.down {
+  color: #cc0000;
+}
+
 /* Two-way switch: the pressed unit takes the accent fill. */
 .units {
   display: inline-flex;
