@@ -59,3 +59,12 @@ for (const [label, status, body] of [
     assert.equal(res.headers["netlify-cdn-cache-control"], undefined);
   });
 }
+
+test("company profile comes from Finnhub, not Alpha Vantage's premium OVERVIEW", async () => {
+  const { handler: company } = await import("./functions/company.mjs");
+  const calls = stubFetch(200, { ticker: "AAPL", name: "Apple Inc" });
+  const res = await company({ queryStringParameters: { symbol: "aapl" } });
+  assert.equal(res.statusCode, 200);
+  assert.match(calls[0], /^https:\/\/finnhub\.io\/api\/v1\/stock\/profile2\?symbol=AAPL&token=/);
+  assert.match(res.headers["netlify-cdn-cache-control"], /s-maxage=86400/);
+});

@@ -1,5 +1,6 @@
 <div class="calculator-container">
   <h1 class="section-title">Shares</h1>
+  <p class="hint">Add each purchase to chart its net equity over time.</p>
 
   <table>
     <tbody>
@@ -13,6 +14,7 @@
               id="{{ selectedStock().symbol + 'dateInput' + i }}"
               type="date"
               [ngClass]="{'empty': !share.date, 'error': share.dateError, 'date': true}"
+              [attr.aria-invalid]="!!share.dateError"
               [ngModel]="share.date"
               (ngModelChange)="inputChanged(share, 'date', $event)"
               (blur)="onShareEntered(i)"
@@ -27,8 +29,10 @@
               min="1"
               placeholder="0"
               step="1"
+              inputmode="numeric"
               type="number"
               [ngClass]="{'error': share.numberError, 'number': true}"
+              [attr.aria-invalid]="!!share.numberError"
               [ngModel]="share.number"
               (ngModelChange)="inputChanged(share, 'number', $event)"
               (blur)="onShareEntered(i)">
@@ -36,17 +40,21 @@
 
           <!-- Price per share purchased -->
           <td>
-            <label for="{{ selectedStock().symbol + 'priceInput' + i }}">Price per Share: $</label>
+            <label for="{{ selectedStock().symbol + 'priceInput' + i }}">Price per Share:</label>
+            <span class="money">
             <input
               id="{{ selectedStock().symbol + 'priceInput' + i }}"
               min="0"
               placeholder="0.00"
-              step="1"
+              step="0.01"
+              inputmode="decimal"
               type="number"
               [ngClass]="{'error': share.priceError, 'price': true}"
+              [attr.aria-invalid]="!!share.priceError"
               [ngModel]="share.price"
               (ngModelChange)="inputChanged(share, 'price', $event)"
-              (blur)="onShareEntered(i); formatPrice(share);">
+              (blur)="formatPrice(share); onShareEntered(i);">
+            </span>
           </td>
 
           <!-- Remove share button -->
@@ -60,21 +68,21 @@
         <!-- Share purchase date error display -->
         @if (share.dateError) {
           <tr>
-            <td colspan="4" class="error pb-7">{{ share.dateError }}</td>
+            <td colspan="4" class="error pb-7" role="alert">{{ share.dateError }}</td>
           </tr>
         }
 
         <!-- Share number error display -->
         @if (share.numberError) {
           <tr>
-            <td colspan="4" class="error pb-7">{{ share.numberError }}</td>
+            <td colspan="4" class="error pb-7" role="alert">{{ share.numberError }}</td>
           </tr>
         }
 
         <!-- Share price error display -->
         @if (share.priceError) {
           <tr>
-            <td colspan="4" class="error pb-7">{{ share.priceError }}</td>
+            <td colspan="4" class="error pb-7" role="alert">{{ share.priceError }}</td>
           </tr>
         }
       }

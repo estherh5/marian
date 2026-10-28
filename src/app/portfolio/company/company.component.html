@@ -2,45 +2,29 @@
 
   <h1 class="section-title">About</h1>
 
-  <div id="description">
-    {{ company().Description }}
-  </div>
-
-  <div id="company-info">
-    <!-- Company's name -->
-    @if (company().Name) {
-      <div class="item" title="Name">
-        {{ company().Name }}
-      </div>
+  <dl id="company-info">
+    @if (company().name) {
+      <div class="item"><dt>Name</dt><dd>{{ company().name }}</dd></div>
     }
-
-    <!-- Company's price-earnings ratio -->
-    @if (company().PERatio) {
-      <div class="item" title="Price/Earnings Ratio">
-        P/E = {{ company().PERatio }}
-      </div>
+    @if (company().finnhubIndustry) {
+      <div class="item"><dt>Industry</dt><dd>{{ company().finnhubIndustry }}</dd></div>
     }
-
-    <!-- Company's exchange market -->
-    @if (company().Exchange) {
-      <div class="item" title="Exchange">
-        {{ company().Exchange }}
-      </div>
+    @if (company().exchange) {
+      <div class="item"><dt>Exchange</dt><dd>{{ toTitleCase(company().exchange ?? '') }}</dd></div>
     }
-
-    <!-- Company's sector and industry -->
-    @if (company().Sector) {
-      <div class="item" title="Sector">
-        {{ toTitleCase(company().Sector ?? '') }} | {{ toTitleCase(company().Industry ?? '') }}
-      </div>
+    @if (marketCap()) {
+      <div class="item"><dt>Market cap</dt><dd>{{ marketCap() }}</dd></div>
     }
-
-    <!-- Company's stock asset type -->
-    @if (company().AssetType) {
-      <div class="item" title="Asset Type">
-        {{ company().AssetType }}
-      </div>
+    @if (company().ipo) {
+      <div class="item"><dt>Listed</dt><dd>{{ ipoYear() }}</dd></div>
     }
-  </div>
+    @if (company().country) {
+      <div class="item"><dt>Country</dt><dd>{{ company().country }}</dd></div>
+    }
+  </dl>
+
+  @if (company().weburl) {
+    <a class="website" href="{{ company().weburl }}" target="_blank" rel="noopener">{{ host() }}</a>
+  }
 
 </div>

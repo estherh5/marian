@@ -1,11 +1,14 @@
-// Subset of Alpha Vantage's company OVERVIEW response used by the app.
+// Subset of Finnhub's company profile (stock/profile2) used by the app. A fund
+// or unknown symbol comes back as `{}`, so every field may be missing.
 export interface Company {
-  Symbol: string | null;
-  Description: string | null;
-  Name: string | null;
-  PERatio: string | null;
-  Exchange: string | null;
-  Sector: string | null;
-  Industry: string | null;
-  AssetType: string | null;
+  ticker?: string;
+  name?: string;
+  exchange?: string;
+  finnhubIndustry?: string;
+  country?: string;
+  ipo?: string;
+  // In millions of the listing currency.
+  marketCapitalization?: number;
+  currency?: string;
+  weburl?: string;
 }

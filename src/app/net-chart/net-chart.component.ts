@@ -58,9 +58,7 @@ export class NetChartComponent implements AfterViewInit, DoCheck, OnDestroy {
   readonly chartDiv = viewChild.required<ElementRef<HTMLElement>>('chartdiv');
   readonly toolbarDiv = viewChild.required<ElementRef<HTMLElement>>('toolbar');
 
-  buttonText = 'Toggle $';
-
-  private type: AxisType = 'percent';
+  type: AxisType = 'percent';
   private root?: am5.Root;
   private built = false;
   private disposed = false;
@@ -96,14 +94,12 @@ export class NetChartComponent implements AfterViewInit, DoCheck, OnDestroy {
   }
 
   // Toggle the net equity chart's y-axis between % and $ units.
-  toggleAxis(): void {
-    if (this.type === 'percent') {
-      this.type = 'price';
-      this.buttonText = 'Toggle %';
-    } else {
-      this.type = 'percent';
-      this.buttonText = 'Toggle $';
+  // Show the net equity as a percent change or in dollars.
+  setAxis(type: AxisType): void {
+    if (type === this.type) {
+      return;
     }
+    this.type = type;
 
     // Trigger an update of the net equity chart through the parent.
     this.optionUpdated.emit();

@@ -60,7 +60,7 @@ describe('AppComponent load states', () => {
     const stub: Partial<StockService> = {
       getCurrentPrice: () => answer(bodies.quote ?? { c: 1, d: 1, dp: 1 }) as ReturnType<StockService['getCurrentPrice']>,
       getDailyData: () => answer(bodies.daily ?? daily([1, 2])) as ReturnType<StockService['getDailyData']>,
-      getCompanyData: () => answer(bodies.company ?? { Symbol: 'AAPL' }) as ReturnType<StockService['getCompanyData']>,
+      getCompanyData: () => answer(bodies.company ?? { ticker: 'AAPL', name: 'Apple Inc' }) as ReturnType<StockService['getCompanyData']>,
       getStockNews: () => answer(bodies.news ?? []) as ReturnType<StockService['getStockNews']>,
     };
     TestBed.configureTestingModule({ providers: [{ provide: StockService, useValue: stub }] });
@@ -74,20 +74,25 @@ describe('AppComponent load states', () => {
     expect(load({}).stock().load).toEqual({ quote: 'ready', history: 'ready', company: 'ready', news: 'ready' });
   });
 
-  it('marks the company failed on a rate-limit notice, and a retry fills it', () => {
-    const { app, stub, stock } = load({ company: { Information: 'Please consider spreading out your free API requests more sparingly (1 request per second).' } });
+  it('marks the company failed when its request errors, and a retry fills it', () => {
+    const { app, stub, stock } = load({ company: new Error('429') });
     expect(stock().load.company).toBe('error');
 
-    stub.getCompanyData = () => of({ Symbol: 'AAPL', Name: 'Apple Inc' }) as ReturnType<StockService['getCompanyData']>;
+    stub.getCompanyData = () => of({ ticker: 'AAPL', name: 'Apple Inc' }) as ReturnType<StockService['getCompanyData']>;
     app.retry({ symbol: 'AAPL', part: 'company' });
     expect(stock().load.company).toBe('ready');
-    expect(stock().company.Name).toBe('Apple Inc');
+    expect(stock().company.name).toBe('Apple Inc');
   });
 
-  it('treats a fund with no overview as ready and empty, not failed', () => {
-    const { stock } = load({ company: { Information: 'Thank you for using Alpha Vantage! This is a premium endpoint.' } });
+  it('marks the company failed when a notice arrives in place of a profile', () => {
+    const { stock } = load({ company: { error: 'API limit reached' } });
+    expect(stock().load.company).toBe('error');
+  });
+
+  it('treats a fund with no profile as ready and empty, not failed', () => {
+    const { stock } = load({ company: {} });
     expect(stock().load.company).toBe('ready');
-    expect(stock().company.Symbol).toBeNull();
+    expect(stock().company.name).toBeUndefined();
   });
 
   it('marks history, quote and news failed when their requests error and nothing is cached', () => {

@@ -63,9 +63,9 @@ export class StockService {
 
   // Get information about the specified stock's company.
   getCompanyData(symbol: string): Observable<Company> {
-    return this.alphaVantage(this.http.get<Company>(`${this.apiUrl}/company`, {
+    return this.http.get<Company>(`${this.apiUrl}/company`, {
       params: new HttpParams().set('symbol', symbol),
-    }));
+    });
   }
 
   // Get the current price for the specified stock.

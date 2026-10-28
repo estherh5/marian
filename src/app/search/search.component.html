@@ -21,6 +21,7 @@
       <!-- Stock search bar -->
       <input #searchBar
         class="search-bar"
+        aria-label="Search stocks by symbol or name"
         placeholder="{{ isLandingPage() ? 'Search for a stock to get started...' : 'Search for stocks...'}}"
         type="text"
         (keyup)="searchStocks($event)"
@@ -28,9 +29,11 @@
 
       <!-- Stock search button -->
       <button #searchButton
+        type="button"
         class="search-icon"
+        aria-label="Search"
         (click)="searchStocks($event)">
-          <i class="fas fa-search"></i>
+          <i class="fas fa-search" aria-hidden="true"></i>
       </button>
 
       <!-- Stock search bar results -->

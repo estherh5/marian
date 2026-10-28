@@ -95,7 +95,7 @@
   }
 
   <!-- Company -->
-  @if (stock.load.company === 'ready' && stock.company.Symbol) {
+  @if (stock.load.company === 'ready' && stock.company.name) {
     <app-company [company]="stock.company"></app-company>
   } @else {
     <section class="slot">

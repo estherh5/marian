@@ -14,12 +14,6 @@ import { NetChartComponent } from './net-chart/net-chart.component';
 import { PortfolioComponent } from './portfolio/portfolio.component';
 import { SearchComponent } from './search/search.component';
 
-// Alpha Vantage's notice when the free tier's per-second or per-day limit is hit.
-function isRateLimited(body: unknown): boolean {
-  const notice = (body as { Information?: string; Note?: string } | null);
-  return /rate limit|requests per|sparingly/i.test(`${notice?.Information ?? ''} ${notice?.Note ?? ''}`);
-}
-
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -129,16 +123,7 @@ export class AppComponent implements OnInit {
       change: null,
       changePercent: null,
       priceHistory: [],
-      company: {
-        Symbol: null,
-        Description: null,
-        Name: null,
-        PERatio: null,
-        Exchange: null,
-        Sector: null,
-        Industry: null,
-        AssetType: null,
-      },
+      company: {},
       news: [],
       load: { quote: 'loading', history: 'loading', company: 'loading', news: 'loading' },
       isCollapsed: false,
@@ -216,15 +201,13 @@ export class AppComponent implements OnInit {
   getCompanyData(symbol: string): void {
     this.stockService.getCompanyData(symbol).subscribe({
       next: (data) => {
-        // Alpha Vantage answers 200 either way: a rate-limit notice is worth
-        // a retry, while a fund (a premium endpoint) or an unknown symbol has
-        // no overview to retry for.
-        if (data?.Symbol) {
-          this.patchStock(symbol, { company: data });
-          this.setLoad(symbol, 'company', 'ready');
-        } else if (isRateLimited(data)) {
+        // A fund or an unknown symbol has no profile: Finnhub answers `{}`.
+        // A notice in place of data (a limit, a bad key) is a failure.
+        const notice = data && ['error', 'Information', 'Note'].some((key) => key in data);
+        if (notice) {
           this.setLoad(symbol, 'company', 'error');
         } else {
+          this.patchStock(symbol, { company: data ?? {} });
           this.setLoad(symbol, 'company', 'ready');
         }
       },
@@ -396,6 +379,14 @@ export class AppComponent implements OnInit {
     const index = this.selectedStocks().findIndex((obj) => obj.symbol === stock.symbol);
     this.selectedStocks.update((stocks) => stocks.filter((obj) => obj.symbol !== stock.symbol));
     this.displayNetChart();
+
+    // With nothing left, go back to the landing page and its search.
+    if (this.selectedStocks().length === 0) {
+      this.renderNetChart = false;
+      this.isLandingPage = true;
+      this.changeDetector.detectChanges();
+      document.querySelector<HTMLInputElement>('.search-bar')?.focus();
+    }
 
     // Offer an undo: the card may hold shares the user typed in.
     clearTimeout(this.undoTimer);

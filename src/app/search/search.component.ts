@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, input, output, viewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, inject, input, output, viewChild } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { algoliasearch, type SearchClient } from 'algoliasearch';
 
@@ -22,6 +22,8 @@ export class SearchComponent {
   readonly isLandingPage = input.required<boolean>();
 
   readonly stockSelected = output<StockSelection>();
+
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   readonly searchBar = viewChild.required<ElementRef<HTMLInputElement>>('searchBar');
   readonly searchButton = viewChild.required<ElementRef<HTMLButtonElement>>('searchButton');
@@ -86,6 +88,7 @@ export class SearchComponent {
       this.noneFound = true;
       this.searchResults = [];
       this.stocksList().nativeElement.style.display = 'block';
+      this.changeDetector.detectChanges();
       return;
     }
 
@@ -96,6 +99,10 @@ export class SearchComponent {
     results[0].selected = true;
     this.searchResults = results;
     this.stocksList().nativeElement.style.display = 'block';
+
+    // The Algolia client resolves outside Angular's zone, so nothing would
+    // render the rows until the next keystroke.
+    this.changeDetector.detectChanges();
 
     if (this.selectOnArrival) {
       this.selectOnArrival = false;

@@ -1,6 +1,8 @@
 import { badRequest, getSymbol, proxyJson } from './_lib.mjs';
 
-// Alpha Vantage company OVERVIEW. Keeps ALPHAVANTAGE_KEY server-side.
+// Finnhub company profile. Alpha Vantage's OVERVIEW became a premium endpoint,
+// so the free key gets a notice instead of data for every symbol. Keeps
+// FINNHUB_KEY server-side. A fund or unknown symbol answers `{}`.
 export const handler = async (event) => {
   const symbol = getSymbol(event);
   if (!symbol) {
@@ -8,7 +10,7 @@ export const handler = async (event) => {
   }
 
   const url =
-    `https://www.alphavantage.co/query?function=OVERVIEW` +
-    `&symbol=${encodeURIComponent(symbol)}&apikey=${process.env.ALPHAVANTAGE_KEY}`;
+    `https://finnhub.io/api/v1/stock/profile2?symbol=${encodeURIComponent(symbol)}` +
+    `&token=${process.env.FINNHUB_KEY}`;
   return proxyJson(url, 86400);
 };

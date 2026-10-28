@@ -4,47 +4,36 @@
   cursor: default;
 }
 
-#description {
-  font-size: 16px;
-}
-
 #company-info {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
+  margin: 10px 0;
   display: flex;
-  -webkit-flex-wrap: wrap;
-  -ms-flex-wrap: wrap;
   flex-wrap: wrap;
+  gap: 8px;
 }
 
+/* A label over its value, on the app's accent chip. */
 .item {
-  width: fit-content;
-  padding: 5px;
+  padding: 6px 10px;
   border-radius: 5px;
-  margin-bottom: 5px;
-  margin-right: 10px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
-  align-items: center;
   background-color: #0b7077;
   color: #ffffff;
-  text-align: center;
 }
 
-.item a {
-  color: #ffffff;
+.item dt {
+  font-size: 11px;
+  opacity: 0.85;
 }
 
-/* Gray on the chip is 3.9:1, so hover underlines and stays white (5.8:1). */
-.item a:hover {
-  color: #ffffff;
+.item dd {
+  margin: 0;
+  font-size: 14px;
+}
+
+.website {
+  display: inline-block;
+  font-size: 14px;
+}
+
+.website:hover {
   text-decoration: underline;
 }

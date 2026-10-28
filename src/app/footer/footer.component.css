@@ -6,7 +6,7 @@
 }
 
 .credits {
-  font-size: 10px;
+  font-size: 12px;
 }
 
 /* The footer floats over background.svg, whose cyan and near-black shapes
@@ -37,7 +37,7 @@
 }
 
 #algolia {
-  height: 10px;
+  height: 12px;
   margin-bottom: -1px;
   margin-right: -0.5px;
 }

@@ -1,7 +1,7 @@
 # Marian
 ![Marian](marian.png)
 
-[Marian](https://marian.crystalprism.io) is an [Angular](https://angular.io/) web app that allows you to visualize real-time stock data, generate a graph of net equity for each stock in your portfolio, and read the latest market and stock news. Marian was created as a counterpart to [Robinhood](https://robinhood.com/) but also stands on its own, as users can enter share data for each stock in their portfolio to see how it contributes to their net equity over time. Marian displays up to 100 trading days' worth of data for each stock, as well as company information, using [Alpha Vantage](https://www.alphavantage.co/)'s global stocks API. It also gets real-time stock prices and market news from [Finnhub](https://finnhub.io/)'s API. Marian's graphs are built from the [amCharts](https://www.amcharts.com/) library, and its search bar is powered by [Algolia](https://www.algolia.com/).
+[Marian](https://marian.crystalprism.io) is an [Angular](https://angular.io/) web app that allows you to visualize real-time stock data, generate a graph of net equity for each stock in your portfolio, and read the latest market and stock news. Marian was created as a counterpart to [Robinhood](https://robinhood.com/) but also stands on its own, as users can enter share data for each stock in their portfolio to see how it contributes to their net equity over time. Marian displays up to 100 trading days' worth of data for each stock using [Alpha Vantage](https://www.alphavantage.co/)'s global stocks API. It gets real-time stock prices, company profiles and market news from [Finnhub](https://finnhub.io/)'s API. Marian's graphs are built from the [amCharts](https://www.amcharts.com/) library, and its search bar is powered by [Algolia](https://www.algolia.com/).
 
 ## Setup
 1. Clone this repository locally or on your server.
@@ -28,8 +28,8 @@ Required environment variables (see `.env.example`):
 
 | Variable           | Used by                         |
 | ------------------ | ------------------------------- |
-| `ALPHAVANTAGE_KEY` | `daily` + `company` functions   |
-| `FINNHUB_KEY`      | `quote` + `news` functions      |
+| `ALPHAVANTAGE_KEY` | `daily` function                |
+| `FINNHUB_KEY`      | `quote`, `company` + `news`     |
 
 - **Local development:** copy `.env.example` to `.env`, fill in your keys, then run
   `npm start` (which runs `netlify dev` — install the

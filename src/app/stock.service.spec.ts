@@ -58,20 +58,20 @@ describe('StockService', () => {
     vi.useFakeTimers();
     try {
       service.getDailyData('AAPL').subscribe();
-      service.getCompanyData('AAPL').subscribe();
+      service.getDailyData('MSFT').subscribe();
 
       // Finnhub is a different provider and is not held back.
-      service.getCurrentPrice('AAPL').subscribe();
-      httpMock.expectOne((r) => r.url === '/api/quote').flush({});
+      service.getCompanyData('AAPL').subscribe();
+      httpMock.expectOne((r) => r.url === '/api/company').flush({});
 
-      httpMock.expectOne((r) => r.url === '/api/daily').flush({});
-      httpMock.expectNone((r) => r.url === '/api/company');
+      httpMock.expectOne((r) => r.params.get('symbol') === 'AAPL' && r.url === '/api/daily').flush({});
+      httpMock.expectNone((r) => r.params.get('symbol') === 'MSFT');
 
       vi.advanceTimersByTime(StockService.ALPHA_VANTAGE_SPACING_MS - 1);
-      httpMock.expectNone((r) => r.url === '/api/company');
+      httpMock.expectNone((r) => r.params.get('symbol') === 'MSFT');
 
       vi.advanceTimersByTime(1);
-      httpMock.expectOne((r) => r.url === '/api/company').flush({});
+      httpMock.expectOne((r) => r.params.get('symbol') === 'MSFT').flush({});
     } finally {
       vi.useRealTimers();
     }

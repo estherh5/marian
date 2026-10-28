@@ -19,18 +19,47 @@
   margin-bottom: 10px;
 }
 
-#toggle {
-  position: absolute;
-  top: 110px;
-  left: 55px;
-  border: #676767 solid 1px;
-  background-color: #ffffff;
-  color: #000000;
-  opacity: 0.6;
-  z-index: 1;
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-#toggle:hover {
-  background-color: #d0d0d0;
-  opacity: 1;
+/* Two-way switch: the pressed unit takes the accent fill. */
+.units {
+  display: inline-flex;
+  border: 1px solid #0b7077;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.units button {
+  min-width: 36px;
+  min-height: 30px;
+  border-radius: 0;
+  background-color: #ffffff;
+  color: #0b7077;
+  font-size: 14px;
+}
+
+.units button:hover {
+  background-color: #e6f1f2;
+}
+
+.units button[aria-pressed="true"] {
+  background-color: #0b7077;
+  color: #ffffff;
+}
+
+.units button:focus-visible {
+  outline-offset: -4px;
+  outline-color: #ffffff;
+}
+
+@media (pointer: coarse) {
+  .units button {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
