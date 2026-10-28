@@ -32,13 +32,24 @@
     </app-net-chart>
   }
 
+  @if (selectedStocks().length > 0) {
+    <div class="saved-note">
+      <p>Your portfolio is saved in this browser only.</p>
+      <button type="button" (click)="clearPortfolio()">Clear portfolio</button>
+    </div>
+  }
+
   <app-footer></app-footer>
 </div>
 
 <!-- Undo the last removal -->
 <div class="undo-bar" [class.open]="removed() || netChartNotice()" role="status" aria-live="polite">
   @if (removed(); as last) {
-    <span>Removed {{ last.stock.name }} ({{ last.stock.symbol }}).</span>
+    @if (last.stocks.length === 1) {
+      <span>Removed {{ last.stocks[0].name }} ({{ last.stocks[0].symbol }}).</span>
+    } @else {
+      <span>Cleared {{ last.stocks.length }} stocks.</span>
+    }
     <button type="button" (click)="undoRemove()">Undo</button>
   } @else if (netChartNotice()) {
     <span>Your net equity is charted below your stocks.</span>

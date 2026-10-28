@@ -8,6 +8,41 @@
   }
 }
 
+/* Says where the portfolio lives, on a white plate like the footer's credits
+   since the background pattern passes behind it. Clear is a quiet text
+   button: it is undoable, and the cards' controls stay the loudest ink. */
+.saved-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: calc(100% - 32px);
+  margin: 16px auto 0;
+  padding: 4px 4px 4px 12px;
+  border-radius: 6px;
+  background-color: #ffffff;
+  font-size: 13px;
+  color: #4a4a4a;
+}
+
+.saved-note p {
+  margin: 0;
+}
+
+.saved-note button {
+  min-height: 32px;
+  background-color: transparent;
+  color: #0b7077;
+  font-weight: 600;
+}
+
+.saved-note button:hover {
+  background-color: #e6f1f2;
+}
+
 /* Sits over the page foot while a removal can be undone. */
 .undo-bar {
   position: fixed;
@@ -43,4 +78,11 @@
 
 .undo-bar button:focus-visible {
   outline-color: #ffffff;
+}
+
+@media (pointer: coarse) {
+  .saved-note button,
+  .undo-bar button {
+    min-height: 44px;
+  }
 }

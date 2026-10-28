@@ -52,7 +52,10 @@ describe('AppComponent price direction', () => {
 });
 
 describe('AppComponent load states', () => {
-  beforeEach(() => sessionStorage.clear());
+  beforeEach(() => {
+    sessionStorage.clear();
+    localStorage.clear();
+  });
 
   // Every request answers at once with the given body, or fails when it is an Error.
   function load(bodies: Partial<Record<'quote' | 'daily' | 'company' | 'news', unknown>>) {
@@ -115,5 +118,52 @@ describe('AppComponent load states', () => {
     app.undoRemove();
     expect(app.selectedStocks().map((s) => s.symbol)).toEqual(['AAPL', 'MSFT']);
     expect(app.removed()).toBeNull();
+  });
+
+  it('restores the saved portfolio on load, purchases and all, and charts them', () => {
+    localStorage.setItem('marian.portfolio', JSON.stringify([
+      { symbol: 'AAPL', name: 'Apple Inc', shares: [{ date: '2026/10/01', number: 3, price: 1 }] },
+      { symbol: 'MSFT', name: 'Microsoft', shares: [] },
+    ]));
+    const stub: Partial<StockService> = {
+      getCurrentPrice: () => of({ c: 1, d: 1, dp: 1 }) as ReturnType<StockService['getCurrentPrice']>,
+      getDailyData: () => of(daily([1, 2])) as ReturnType<StockService['getDailyData']>,
+      getCompanyData: () => of({}) as ReturnType<StockService['getCompanyData']>,
+      getStockNews: () => of([]) as ReturnType<StockService['getStockNews']>,
+    };
+    TestBed.configureTestingModule({ providers: [{ provide: StockService, useValue: stub }] });
+    TestBed.overrideComponent(AppComponent, { set: { template: '', imports: [] } });
+    const app = TestBed.createComponent(AppComponent).componentInstance;
+    app.ngOnInit();
+
+    expect(app.isLandingPage).toBe(false);
+    expect(app.selectedStocks().map((s) => [s.symbol, s.isCollapsed, s.shares.length])).toEqual([['AAPL', true, 2], ['MSFT', false, 1]]);
+    expect(app.selectedStocks()[0].shares[0]).toMatchObject({ date: '2026/10/01', number: 3, price: 1, dateError: null });
+    expect(app.selectedStocks()[0].load.history).toBe('ready');
+    expect(app.renderNetChart).toBe(true);
+  });
+
+  it('saves each change, and Clear forgets everything until Undo', () => {
+    const { app } = load({});
+    app.addNewStock({ name: 'Microsoft', symbol: 'MSFT' });
+    const saved = () => JSON.parse(localStorage.getItem('marian.portfolio') ?? '[]').map((s: { symbol: string }) => s.symbol);
+    expect(saved()).toEqual(['AAPL', 'MSFT']);
+
+    app.clearPortfolio();
+    expect(app.selectedStocks()).toEqual([]);
+    expect(app.isLandingPage).toBe(true);
+    expect(localStorage.getItem('marian.portfolio')).toBeNull();
+
+    app.undoRemove();
+    expect(app.selectedStocks().map((s) => s.symbol)).toEqual(['AAPL', 'MSFT']);
+    expect(saved()).toEqual(['AAPL', 'MSFT']);
+  });
+
+  it('leaving an empty page keeps a portfolio saved elsewhere', () => {
+    const { app } = load({});
+    app.clearPortfolio();
+    localStorage.setItem('marian.portfolio', '[{"symbol":"MSFT","name":"Microsoft","shares":[]}]');
+    app.saveOnLeave();
+    expect(localStorage.getItem('marian.portfolio')).toContain('MSFT');
   });
 });

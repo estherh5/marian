@@ -1,9 +1,10 @@
-import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, HostListener, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { interval } from 'rxjs';
 
 import { Article } from './article';
+import { loadPortfolio, savePortfolio } from './portfolio-store';
 import { Share } from './share';
 import { LoadState, Stock, StockPart, StockSelection } from './stock';
 import { StockService } from './stock.service';
@@ -37,8 +38,9 @@ export class AppComponent implements OnInit {
   // Whether the net equity chart should be updated.
   updateNetChart = false;
 
-  // The stock removed last, kept for a few seconds so its removal can be undone.
-  readonly removed = signal<{ stock: Stock; index: number } | null>(null);
+  // The stocks removed last (one, or all by Clear), kept for a few seconds so
+  // the removal can be undone.
+  readonly removed = signal<{ stocks: Stock[]; index: number } | null>(null);
   private undoTimer: ReturnType<typeof setTimeout> | undefined;
 
   // Set for a few seconds when the net equity chart first appears, since it
@@ -50,6 +52,8 @@ export class AppComponent implements OnInit {
   private readonly symbols: string[] = SYMBOLS;
 
   ngOnInit(): void {
+    this.restorePortfolio();
+
     // During market hours, refresh each loaded stock's price every minute.
     if (this.isMarketOpen()) {
       interval(60000)
@@ -99,6 +103,7 @@ export class AppComponent implements OnInit {
       this.selectedStocks.set([...stocks]);
     }
 
+    this.save();
     this.displayNetChart();
   }
 
@@ -119,10 +124,70 @@ export class AppComponent implements OnInit {
     stocks.forEach((obj) => (obj.isCollapsed = true));
 
     // Add the new stock to the selected stocks list.
-    this.selectedStocks.set([...stocks, {
+    this.selectedStocks.set([...stocks, this.createStock(stock, [this.createEmptyShare()], false)]);
+    this.save();
+
+    // Bring the new card into view now; its sections fill in as data arrives.
+    this.changeDetector.detectChanges();
+    document.getElementById(stock.symbol)?.scrollIntoView();
+
+    this.loadStock(stock.symbol);
+  }
+
+  /* Bring back the portfolio saved in this browser: every stock and the
+  purchases typed for it, with the last stock open, as it was when added. */
+  private restorePortfolio(): void {
+    const saved = loadPortfolio();
+    if (!saved.length) {
+      return;
+    }
+
+    this.isLandingPage = false;
+    this.selectedStocks.set(saved.map((stock, i) => {
+      const shares: Share[] = stock.shares.map((share) => ({
+        ...share,
+        dateError: null,
+        numberError: null,
+        priceError: null,
+      }));
+      // Keep an empty row to type the next purchase into.
+      shares.push(this.createEmptyShare());
+      return this.createStock(stock, shares, i < saved.length - 1);
+    }));
+    saved.forEach((stock) => this.loadStock(stock.symbol));
+  }
+
+  // Keep the portfolio for the next visit. Typed values land on the share
+  // objects directly, so this runs after every change and when the page goes.
+  save(): void {
+    savePortfolio(this.selectedStocks());
+  }
+
+  /* Catch a value typed but not yet blurred. An empty portfolio was already
+  saved when it emptied, and saving it again would erase one kept by another
+  tab, or by this page before it restored. */
+  @HostListener('window:pagehide')
+  saveOnLeave(): void {
+    if (this.selectedStocks().length) {
+      this.save();
+    }
+  }
+
+  // Remove every stock, with the same Undo a single removal offers.
+  clearPortfolio(): void {
+    const stocks = this.selectedStocks();
+    if (!stocks.length) {
+      return;
+    }
+    this.selectedStocks.set([]);
+    this.afterRemoval({ stocks, index: 0 });
+  }
+
+  private createStock(stock: StockSelection, shares: Share[], isCollapsed: boolean): Stock {
+    return {
       name: stock.name,
       symbol: stock.symbol,
-      shares: [this.createEmptyShare()],
+      shares,
       isRising: null,
       price: null,
       change: null,
@@ -131,19 +196,17 @@ export class AppComponent implements OnInit {
       company: {},
       news: [],
       load: { quote: 'loading', history: 'loading', company: 'loading', news: 'loading' },
-      isCollapsed: false,
+      isCollapsed,
       updateChart: false,
-    }]);
+    };
+  }
 
-    // Bring the new card into view now; its sections fill in as data arrives.
-    this.changeDetector.detectChanges();
-    document.getElementById(stock.symbol)?.scrollIntoView();
-
-    // Load data for the newly added stock.
-    this.getPriceHistory(stock.symbol);
-    this.getCurrentPrice(stock.symbol);
-    this.getCompanyData(stock.symbol);
-    this.getStockNews(stock.symbol);
+  // Load every part of a stock's card.
+  private loadStock(symbol: string): void {
+    this.getPriceHistory(symbol);
+    this.getCurrentPrice(symbol);
+    this.getCompanyData(symbol);
+    this.getStockNews(symbol);
   }
 
   // Determine whether the net equity chart should be rendered.
@@ -270,6 +333,7 @@ export class AppComponent implements OnInit {
 
       this.patchStock(symbol, { priceHistory: apiData, updateChart: true });
       this.setLoad(symbol, 'history', 'ready');
+      this.chartRestoredShares();
 
       // Cache the history so it can be reloaded if the API rate-limits us.
       sessionStorage.setItem(symbol, JSON.stringify(apiData));
@@ -285,9 +349,19 @@ export class AppComponent implements OnInit {
         }));
         this.patchStock(symbol, { priceHistory, updateChart: true });
         this.setLoad(symbol, 'history', 'ready');
+        this.chartRestoredShares();
       } else {
         this.setLoad(symbol, 'history', 'error');
       }
+    }
+  }
+
+  /* Purchases restored from a saved portfolio can be charted once a price
+  history arrives; until now the chart only followed a typed share. */
+  private chartRestoredShares(): void {
+    this.displayNetChart();
+    if (!this.destroyRef.destroyed) {
+      this.changeDetector.detectChanges();
     }
   }
 
@@ -373,6 +447,7 @@ export class AppComponent implements OnInit {
 
     stocks[stockIndex].shares.splice(removal.index, 1);
     this.selectedStocks.set([...stocks]);
+    this.save();
 
     // If the removed share was the last one, add an empty share back.
     if (removal.index === numberOfShares - 1) {
@@ -386,6 +461,11 @@ export class AppComponent implements OnInit {
   removeStock(stock: Stock): void {
     const index = this.selectedStocks().findIndex((obj) => obj.symbol === stock.symbol);
     this.selectedStocks.update((stocks) => stocks.filter((obj) => obj.symbol !== stock.symbol));
+    this.afterRemoval({ stocks: [stock], index });
+  }
+
+  private afterRemoval(removed: { stocks: Stock[]; index: number }): void {
+    this.save();
     this.displayNetChart();
 
     // With nothing left, go back to the landing page and its search.
@@ -396,9 +476,9 @@ export class AppComponent implements OnInit {
       document.querySelector<HTMLInputElement>('.search-bar')?.focus();
     }
 
-    // Offer an undo: the card may hold shares the user typed in.
+    // Offer an undo: the cards may hold shares the user typed in.
     clearTimeout(this.undoTimer);
-    this.removed.set({ stock, index });
+    this.removed.set(removed);
     this.undoTimer = setTimeout(() => this.removed.set(null), 8000);
   }
 
@@ -421,9 +501,10 @@ export class AppComponent implements OnInit {
     this.isLandingPage = false;
     this.selectedStocks.update((stocks) => {
       const next = [...stocks];
-      next.splice(removed.index, 0, { ...removed.stock, updateChart: true });
+      next.splice(removed.index, 0, ...removed.stocks.map((stock) => ({ ...stock, updateChart: true })));
       return next;
     });
+    this.save();
     this.displayNetChart();
   }
 
