@@ -109,9 +109,24 @@
   color: #085a60;
 }
 
+/* A 44px tap band on the source link and the related chips, from a centered
+   ::after, so the rows and the chip wrap stay where they are. */
 @media (pointer: coarse) {
+  .source-name a,
   .related {
-    min-height: 32px;
+    position: relative;
+  }
+
+  .source-name a::after,
+  .related::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    min-width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
   }
 }
 

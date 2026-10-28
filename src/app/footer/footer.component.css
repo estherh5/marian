@@ -41,3 +41,22 @@
   margin-bottom: -1px;
   margin-right: -0.5px;
 }
+
+/* A 44px tap band on each credit, from a centered ::after, so the 12px lines
+   and the plate keep their size. */
+@media (pointer: coarse) {
+  .credits a {
+    position: relative;
+  }
+
+  .credits a::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    min-width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+}

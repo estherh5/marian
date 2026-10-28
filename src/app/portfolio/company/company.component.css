@@ -37,3 +37,21 @@
 .website:hover {
   text-decoration: underline;
 }
+
+/* A 44px tap band from a centered ::after, so the link's box does not grow. */
+@media (pointer: coarse) {
+  .website {
+    position: relative;
+  }
+
+  .website::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    min-width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+}
