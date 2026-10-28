@@ -41,6 +41,11 @@ export class AppComponent implements OnInit {
   readonly removed = signal<{ stock: Stock; index: number } | null>(null);
   private undoTimer: ReturnType<typeof setTimeout> | undefined;
 
+  // Set for a few seconds when the net equity chart first appears, since it
+  // renders below the cards, out of view of the share row that made it.
+  readonly netChartNotice = signal(false);
+  private noticeTimer: ReturnType<typeof setTimeout> | undefined;
+
   // Known stock symbols, used to filter news "related" symbols.
   private readonly symbols: string[] = SYMBOLS;
 
@@ -170,8 +175,11 @@ export class AppComponent implements OnInit {
       // Update the chart if it is already rendered.
       this.updateNetChart = true;
     } else if (enoughData) {
-      // Render the chart for the first time.
+      // Render the chart for the first time, and point to it.
       this.renderNetChart = true;
+      clearTimeout(this.noticeTimer);
+      this.netChartNotice.set(true);
+      this.noticeTimer = setTimeout(() => this.netChartNotice.set(false), 8000);
     } else {
       // Otherwise, do not render the chart.
       this.renderNetChart = false;
@@ -392,6 +400,14 @@ export class AppComponent implements OnInit {
     clearTimeout(this.undoTimer);
     this.removed.set({ stock, index });
     this.undoTimer = setTimeout(() => this.removed.set(null), 8000);
+  }
+
+  // Scroll to the net equity chart from its notice.
+  showNetChart(): void {
+    clearTimeout(this.noticeTimer);
+    this.netChartNotice.set(false);
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById('net-equity')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
   }
 
   // Put the last removed stock back where it was.

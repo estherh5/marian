@@ -15,7 +15,7 @@
               type="date"
               [ngClass]="{'empty': !share.date, 'error': share.dateError, 'date': true}"
               [attr.aria-invalid]="!!share.dateError"
-              [ngModel]="share.date"
+              [ngModel]="inputDate(share)"
               (ngModelChange)="inputChanged(share, 'date', $event)"
               (blur)="onShareEntered(i)"
               required>

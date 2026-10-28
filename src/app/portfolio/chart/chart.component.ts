@@ -43,6 +43,7 @@ export class ChartComponent implements AfterViewInit, DoCheck, OnDestroy {
   private root?: am5.Root;
   private built = false;
   private disposed = false;
+  private pendingFrame = 0;
 
   // Build the chart once the view (DOM) is ready. Emitting chartUpdated clears
   // the parent's update flag so ngDoCheck does not immediately rebuild.
@@ -70,9 +71,13 @@ export class ChartComponent implements AfterViewInit, DoCheck, OnDestroy {
     // Defer one frame so the container has its final layout before amCharts
     // measures it — creating synchronously can leave the chart sized 0 until
     // the next reflow.
+    // Two builds inside one frame would otherwise create two roots on one
+    // node ("You cannot have multiple Roots on the same DOM node").
+    cancelAnimationFrame(this.pendingFrame);
     this.zone.runOutsideAngular(() => {
-      requestAnimationFrame(() => {
+      this.pendingFrame = requestAnimationFrame(() => {
         if (!this.disposed) {
+          this.disposeChart();
           this.createChart();
         }
       });
@@ -94,6 +99,9 @@ export class ChartComponent implements AfterViewInit, DoCheck, OnDestroy {
     // amCharts mutates the DOM heavily; keep it out of Angular's zone.
     this.zone.runOutsideAngular(() => {
       const root = am5.Root.new(this.chartDiv().nativeElement);
+      // The wheel scrolls the page, and on touch a drag scrolls until the
+      // chart is tapped, so a 500px chart never traps the page.
+      root.tapToActivate = true;
       this.root = root;
       root.setThemes([am5themes_Animated.new(root)]);
 
@@ -101,7 +109,7 @@ export class ChartComponent implements AfterViewInit, DoCheck, OnDestroy {
 
       // --- Price panel -------------------------------------------------------
       const mainPanel = stockChart.panels.push(
-        am5stock.StockPanel.new(root, { wheelY: 'zoomX', panX: true, panY: false }),
+        am5stock.StockPanel.new(root, { wheelY: 'none', panX: true, panY: false }),
       );
 
       const valueAxis = mainPanel.yAxes.push(
@@ -143,7 +151,7 @@ export class ChartComponent implements AfterViewInit, DoCheck, OnDestroy {
 
       // --- Volume panel ------------------------------------------------------
       const volumePanel = stockChart.panels.push(
-        am5stock.StockPanel.new(root, { wheelY: 'zoomX', panX: true, panY: false, height: am5.percent(30) }),
+        am5stock.StockPanel.new(root, { wheelY: 'none', panX: true, panY: false, height: am5.percent(30) }),
       );
       volumePanel.panelControls.closeButton.set('forceHidden', true);
 

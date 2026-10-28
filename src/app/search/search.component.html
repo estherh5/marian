@@ -22,6 +22,11 @@
       <input #searchBar
         class="search-bar"
         aria-label="Search stocks by symbol or name"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-controls="stock-options"
+        [attr.aria-expanded]="isOpen"
+        [attr.aria-activedescendant]="activeOption()"
         placeholder="{{ isLandingPage() ? 'Search for a stock to get started...' : 'Search for stocks...'}}"
         type="text"
         (keyup)="searchStocks($event)"
@@ -38,35 +43,33 @@
 
       <!-- Stock search bar results -->
       <div class="search-results">
-        <table #stocksList class="stocks-list">
-          <tbody>
+        <ul #stocksList id="stock-options" class="stocks-list" role="listbox" aria-label="Matching stocks">
+          <!-- Stock symbol and name -->
+          @for (searchResult of searchResults; track searchResult.objectID) {
+            <li
+              role="option"
+              id="stock-option-{{ searchResult.objectID }}"
+              [attr.aria-selected]="!!searchResult.selected"
+              [ngClass]="{'selected': searchResult.selected}"
+              (mouseenter)="hoverOverStock(searchResult)"
+              (click)="selectStock(searchResult)">
+                <span class="symbol">{{ searchResult.symbol }}</span>
+                <span class="name">{{ searchResult.name }}</span>
+            </li>
+          }
 
-            <!-- Stock symbol and name -->
-            @for (searchResult of searchResults; track searchResult.objectID) {
-              <tr
-                [ngClass]="{'selected': searchResult.selected}"
-                (mouseenter)="hoverOverStock(searchResult)"
-                (click)="selectStock(searchResult)">
-                  <td class="symbol">
-                    {{ searchResult.symbol }}
-                  </td>
-                  <td class="name">
-                    {{ searchResult.name }}
-                  </td>
-              </tr>
-            }
+          <!-- No results found message -->
+          @if (noneFound) {
+            <li class="none" role="presentation">No results found</li>
+          }
+        </ul>
 
-            <!-- No results found message -->
-            @if (noneFound) {
-              <tr class="none">
-                <td>
-                  No results found
-                </td>
-              </tr>
-            }
-
-          </tbody>
-        </table>
+        <!-- Announces how many matches arrived -->
+        <span class="visually-hidden" role="status">
+          @if (isOpen) {
+            {{ noneFound ? 'No results found' : searchResults.length + (searchResults.length === 1 ? ' result' : ' results') }}
+          }
+        </span>
       </div>
 
     </div>

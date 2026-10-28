@@ -175,3 +175,17 @@ input[type="button"] {
 #footer .fleet-footer {
   padding-top: 8px;
 }
+
+/* amCharts' period links ship 18px tall; give them the 24px minimum, and
+   the 44px floor on touch. */
+.am5stock-link {
+  display: inline-flex !important;
+  align-items: center;
+  min-height: 24px;
+}
+
+@media (pointer: coarse) {
+  .am5stock-link {
+    min-height: 44px;
+  }
+}

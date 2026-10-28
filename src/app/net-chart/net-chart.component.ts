@@ -62,6 +62,7 @@ export class NetChartComponent implements AfterViewInit, DoCheck, OnDestroy {
   private root?: am5.Root;
   private built = false;
   private disposed = false;
+  private pendingFrame = 0;
 
   ngAfterViewInit(): void {
     this.build();
@@ -84,9 +85,13 @@ export class NetChartComponent implements AfterViewInit, DoCheck, OnDestroy {
     this.built = true;
     this.disposeChart();
     // Defer one frame so the container is laid out before amCharts measures it.
+    // Two builds inside one frame would otherwise create two roots on one
+    // node ("You cannot have multiple Roots on the same DOM node").
+    cancelAnimationFrame(this.pendingFrame);
     this.zone.runOutsideAngular(() => {
-      requestAnimationFrame(() => {
+      this.pendingFrame = requestAnimationFrame(() => {
         if (!this.disposed) {
+          this.disposeChart();
           this.createChart();
         }
       });
@@ -230,13 +235,16 @@ export class NetChartComponent implements AfterViewInit, DoCheck, OnDestroy {
 
     this.zone.runOutsideAngular(() => {
       const root = am5.Root.new(this.chartDiv().nativeElement);
+      // The wheel scrolls the page, and on touch a drag scrolls until the
+      // chart is tapped, so a 500px chart never traps the page.
+      root.tapToActivate = true;
       this.root = root;
       root.setThemes([am5themes_Animated.new(root)]);
 
       const stockChart = root.container.children.push(am5stock.StockChart.new(root, {}));
 
       const panel = stockChart.panels.push(
-        am5stock.StockPanel.new(root, { wheelY: 'zoomX', panX: true, panY: false }),
+        am5stock.StockPanel.new(root, { wheelY: 'none', panX: true, panY: false }),
       );
 
       const valueAxis = panel.yAxes.push(

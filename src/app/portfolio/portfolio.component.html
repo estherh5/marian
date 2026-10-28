@@ -101,7 +101,7 @@
     <section class="slot">
       <h1 class="section-title">About</h1>
       @if (stock.load.company === 'ready') {
-        <p class="empty">No company details for {{ stock.symbol }}.</p>
+        <p class="empty" role="status">No company details for {{ stock.symbol }}.</p>
       } @else if (stock.load.company === 'loading') {
         <div class="skeleton-lines" role="status">
           <span class="visually-hidden">Loading company details…</span>
@@ -149,7 +149,7 @@
           </div>
         }
         @default {
-          <p class="empty">No news about {{ stock.symbol }} in the past year.</p>
+          <p class="empty" role="status">No news about {{ stock.symbol }} in the past year.</p>
         }
       }
     </section>

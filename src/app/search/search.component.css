@@ -40,7 +40,6 @@
 
 .title {
   margin-right: 2px;
-  outline: none !important;
   font-family: 'Stalemate', cursive;
   font-size: 57px;
   line-height: 0px;
@@ -126,10 +125,11 @@
 
 .stocks-list {
   width: 100%;
+  margin-top: 0;
+  list-style: none;
   box-sizing: border-box;
   max-height: 210px;
   padding: 9px;
-  border-collapse: collapse;
   border-color: #0b7077;
   border-style: solid;
   border-top: none;
@@ -144,21 +144,47 @@
   overflow: scroll;
 }
 
-.stocks-list tr {
+.stocks-list li {
+  display: flex;
+  gap: 8px;
+  padding: 4px 3px;
   color: #0b7077;
   cursor: pointer;
 }
 
-.stocks-list td {
-  padding: 3px;
+/* On touch each match is a full 44px row. */
+@media (pointer: coarse) {
+  .stocks-list li {
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .search-bar {
+    min-height: 44px;
+  }
+
+  .search-icon {
+    min-width: 44px;
+    justify-content: center;
+  }
 }
 
 .symbol {
+  flex: none;
   width: 50px;
 }
 
 .name {
-  width: 300px;
+  flex: 1;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .selected {

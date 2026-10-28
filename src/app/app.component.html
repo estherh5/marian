@@ -9,15 +9,6 @@
 </app-search>
 
 <div id="main-container">
-  @if (selectedStocks().length > 0 && renderNetChart) {
-    <app-net-chart
-      [selectedStocks]="selectedStocks()"
-      [update]="updateNetChart"
-      (chartUpdated)="onNetChartUpdated()"
-      (optionUpdated)="displayNetChart()">
-    </app-net-chart>
-  }
-
   @for (selectedStock of selectedStocks(); track selectedStock.symbol) {
     <app-portfolio
       id="{{ selectedStock.symbol }}"
@@ -31,13 +22,26 @@
     </app-portfolio>
   }
 
+  @if (selectedStocks().length > 0 && renderNetChart) {
+    <app-net-chart
+      id="net-equity"
+      [selectedStocks]="selectedStocks()"
+      [update]="updateNetChart"
+      (chartUpdated)="onNetChartUpdated()"
+      (optionUpdated)="displayNetChart()">
+    </app-net-chart>
+  }
+
   <app-footer></app-footer>
 </div>
 
 <!-- Undo the last removal -->
-<div class="undo-bar" [class.open]="removed()" role="status" aria-live="polite">
+<div class="undo-bar" [class.open]="removed() || netChartNotice()" role="status" aria-live="polite">
   @if (removed(); as last) {
     <span>Removed {{ last.stock.name }} ({{ last.stock.symbol }}).</span>
     <button type="button" (click)="undoRemove()">Undo</button>
+  } @else if (netChartNotice()) {
+    <span>Your net equity is charted below your stocks.</span>
+    <button type="button" (click)="showNetChart()">Show</button>
   }
 </div>

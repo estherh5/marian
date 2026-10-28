@@ -55,8 +55,22 @@ export class SearchComponent {
       target !== this.searchButton().nativeElement &&
       !this.stocksList().nativeElement.contains(target)
     ) {
-      this.stocksList().nativeElement.style.display = 'none';
+      this.showList(false);
     }
+  }
+
+  // Whether the results list is showing; the input's aria-expanded mirrors it.
+  isOpen = false;
+
+  private showList(show: boolean): void {
+    this.isOpen = show;
+    this.stocksList().nativeElement.style.display = show ? 'block' : 'none';
+  }
+
+  // The highlighted option's id, for the input's aria-activedescendant.
+  activeOption(): string | null {
+    const active = this.searchResults.find((stock) => stock.selected);
+    return this.isOpen && active ? `stock-option-${active.objectID}` : null;
   }
 
   // Mark the specified stock as selected when the user hovers over it.
@@ -87,7 +101,7 @@ export class SearchComponent {
       this.selectOnArrival = false;
       this.noneFound = true;
       this.searchResults = [];
-      this.stocksList().nativeElement.style.display = 'block';
+      this.showList(true);
       this.changeDetector.detectChanges();
       return;
     }
@@ -98,7 +112,7 @@ export class SearchComponent {
     results.forEach((stock) => (stock.selected = false));
     results[0].selected = true;
     this.searchResults = results;
-    this.stocksList().nativeElement.style.display = 'block';
+    this.showList(true);
 
     // The Algolia client resolves outside Angular's zone, so nothing would
     // render the rows until the next keystroke.
@@ -117,11 +131,16 @@ export class SearchComponent {
 
     // If the search bar is empty, hide the search results list.
     if (!searchValue) {
-      this.stocksList().nativeElement.style.display = 'none';
+      this.showList(false);
       return;
     }
 
     // Move the highlight to the next result on ArrowDown.
+    if (key === 'Escape') {
+      this.showList(false);
+      return;
+    }
+
     if ((key === 'ArrowDown' || key === 'ArrowUp') && this.searchResults.length === 0) {
       return;
     }
@@ -180,7 +199,7 @@ export class SearchComponent {
     this.searchResults = [];
 
     // Hide the stock search results list.
-    this.stocksList().nativeElement.style.display = 'none';
+    this.showList(false);
 
     this.stockSelected.emit({ symbol: stock.symbol, name: stock.name });
   }

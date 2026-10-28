@@ -17,6 +17,13 @@ export class CalculatorComponent {
   readonly shareEntered = output<string>();
   readonly shareRemoved = output<ShareRemoval>();
 
+  /* The share keeps its date as yyyy/mm/dd for the net equity math, but a
+  date input only shows yyyy-mm-dd: bound as stored, the field went blank
+  again on the next render. */
+  inputDate(share: Share): string | null {
+    return share.date ? share.date.replace(/\//g, '-') : null;
+  }
+
   /* Validate input fields for a share based on the passed type ('date',
   'number', 'price') and event (input value). */
   inputChanged(share: Share, type: 'date' | 'number' | 'price', event: string | number): void {
