@@ -7,3 +7,40 @@
     max-width: 800px;
   }
 }
+
+/* Sits over the page foot while a removal can be undone. */
+.undo-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 6px;
+  background-color: #1f2a2b;
+  color: #ffffff;
+  font-size: 14px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.undo-bar.open {
+  display: flex;
+}
+
+.undo-bar button {
+  min-height: 36px;
+  background-color: #ffffff;
+  color: #0b7077;
+  font-weight: bold;
+}
+
+.undo-bar button:hover {
+  background-color: #e6f1f2;
+}
+
+.undo-bar button:focus-visible {
+  outline-color: #ffffff;
+}

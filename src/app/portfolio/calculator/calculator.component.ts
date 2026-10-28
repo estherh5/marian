@@ -28,7 +28,8 @@ export class CalculatorComponent {
       const value = String(event);
       share.dateError = '';
 
-      const latestClose = stock.priceHistory[stock.priceHistory.length - 1].date.getTime();
+      // Until the history loads, the latest close is no later than now.
+      const latestClose = stock.priceHistory.at(-1)?.date.getTime() ?? Date.now();
       const offsetHours = new Date().getTimezoneOffset() / 60;
       const purchaseDate = new Date(`${value.replace(/-/g, '/')} 09:30 GMT-${offsetHours}`).getTime();
 

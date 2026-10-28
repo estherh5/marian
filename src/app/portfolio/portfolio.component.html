@@ -4,10 +4,14 @@
 @if (stock.name !== '') {
   <h1 [ngClass]="{'collapsed': stock.isCollapsed, 'stock-name': true, 'section-title': true}">
 
-    <!-- Link to collapse/expand stock -->
-    <a (click)="stock.isCollapsed = !stock.isCollapsed" title="Collapse stock">
-      <!-- Collapsed/expanded caret -->
-      <i [ngClass]="{'fa-caret-right': stock.isCollapsed, 'fa-caret-down': !stock.isCollapsed, 'fas': true, 'w-15': true, 'mr-5': true}"></i>
+    <!-- Collapse/expand the stock's card -->
+    <button
+      type="button"
+      class="stock-toggle"
+      [attr.aria-expanded]="!stock.isCollapsed"
+      [attr.aria-controls]="stock.symbol + '-body'"
+      (click)="stock.isCollapsed = !stock.isCollapsed">
+      <i aria-hidden="true" [ngClass]="{'fa-caret-right': stock.isCollapsed, 'fa-caret-down': !stock.isCollapsed, 'fas': true, 'w-15': true, 'mr-5': true}"></i>
 
       <span class="stock-name-price-container">
         <span class="mr-5">
@@ -15,62 +19,139 @@
           {{ stock.name }} ({{ stock.symbol }}):
         </span>
 
-        @if (stock.isRising !== null) {
-          <span [ngClass]="{'up': stock.isRising, 'down': !stock.isRising, 'price-container': true}">
-            <!-- Stock price -->
-            @if (stock.price !== null) {
-              {{ '$' + stock.price.toFixed(2) }}
-            }
-            @if (stock.change !== null && stock.changePercent !== null) {
-              <span [ngClass]="{'up': stock.isRising, 'down': !stock.isRising, 'ml-5': true, 'dollar-change-container': true}">
-                <span>
-                  <!-- Price change in USD -->
-                  {{ (stock.change > 0 ? '+$' : '-$') + Math.abs(stock.change).toFixed(2) }}
-                </span>
-                <span>
-                  <!-- Price change % -->
-                  {{ (stock.changePercent > 0 ? '+' : '-') + Math.abs(stock.changePercent).toFixed(2) + '%' }}
-                </span>
+        @switch (stock.load.quote) {
+          @case ('loading') {
+            <span class="pending">Loading price…</span>
+          }
+          @case ('error') {
+            <span class="pending">Price unavailable</span>
+          }
+          @default {
+            @if (stock.isRising !== null && stock.price !== null) {
+              <span [ngClass]="{'up': stock.isRising, 'down': !stock.isRising, 'price-container': true}">
+                <!-- Stock price -->
+                {{ '$' + stock.price.toFixed(2) }}
+                @if (stock.change !== null && stock.changePercent !== null) {
+                  <span [ngClass]="{'up': stock.isRising, 'down': !stock.isRising, 'ml-5': true, 'dollar-change-container': true}">
+                    <span>
+                      <!-- Price change in USD -->
+                      {{ (stock.change > 0 ? '+$' : '-$') + Math.abs(stock.change).toFixed(2) }}
+                    </span>
+                    <span>
+                      <!-- Price change % -->
+                      {{ (stock.changePercent > 0 ? '+' : '-') + Math.abs(stock.changePercent).toFixed(2) + '%' }}
+                    </span>
+                  </span>
+                }
               </span>
+            } @else {
+              <span class="pending">No live quote</span>
             }
-          </span>
+          }
         }
       </span>
-    </a>
+    </button>
+
+    @if (stock.load.quote === 'error') {
+      <button type="button" class="retry" (click)="retry(stock, 'quote')">Retry</button>
+    }
 
     <!-- Remove stock button -->
-    <a class="remove" (click)="removeStock(stock)" title="Remove stock">&times;</a>
+    <button type="button" class="remove" (click)="removeStock(stock)" [attr.aria-label]="'Remove ' + stock.name" title="Remove stock">
+      <i class="fas fa-times" aria-hidden="true"></i>
+    </button>
   </h1>
 }
 
-@if (stock.name) {
-  <app-calculator
-    [ngClass]="{'hidden': stock.isCollapsed}"
-    [selectedStock]="stock"
-    (shareEntered)="onShareEntered($event)"
-    (shareRemoved)="onShareRemoved($event)">
-  </app-calculator>
-}
+<div id="{{ stock.symbol }}-body" [ngClass]="{'hidden': stock.isCollapsed}">
+  @if (stock.name) {
+    <app-calculator
+      [selectedStock]="stock"
+      (shareEntered)="onShareEntered($event)"
+      (shareRemoved)="onShareRemoved($event)">
+    </app-calculator>
+  }
 
-@if (stock.priceHistory.length > 0) {
-  <app-chart
-    [ngClass]="{'hidden': stock.isCollapsed}"
-    [selectedStock]="stock"
-    (chartUpdated)="onChartUpdated($event)">
-  </app-chart>
-}
+  <!-- Price history -->
+  @if (stock.load.history === 'ready') {
+    <app-chart
+      [selectedStock]="stock"
+      (chartUpdated)="onChartUpdated($event)">
+    </app-chart>
+  } @else {
+    <section class="slot">
+      <h1 class="section-title">Price</h1>
+      @if (stock.load.history === 'loading') {
+        <div class="skeleton chart-skeleton" role="status">
+          <span class="skeleton-label">Loading 100 days of prices…</span>
+        </div>
+      } @else {
+        <div class="failure" role="alert">
+          <p>Couldn't load the price history. The free data feed may be busy, or out of requests for today.</p>
+          <button type="button" (click)="retry(stock, 'history')">Retry</button>
+        </div>
+      }
+    </section>
+  }
 
-@if (stock.company.Symbol) {
-  <app-company
-    [ngClass]="{'hidden': stock.isCollapsed}"
-    [company]="stock.company">
-  </app-company>
-}
+  <!-- Company -->
+  @if (stock.load.company === 'ready' && stock.company.Symbol) {
+    <app-company [company]="stock.company"></app-company>
+  } @else {
+    <section class="slot">
+      <h1 class="section-title">About</h1>
+      @if (stock.load.company === 'ready') {
+        <p class="empty">No company details for {{ stock.symbol }}.</p>
+      } @else if (stock.load.company === 'loading') {
+        <div class="skeleton-lines" role="status">
+          <span class="visually-hidden">Loading company details…</span>
+          <span class="skeleton bar"></span>
+          <span class="skeleton bar"></span>
+          <span class="skeleton bar short"></span>
+        </div>
+      } @else {
+        <div class="failure" role="alert">
+          <p>Couldn't load the company details. The free data feed may be busy, or out of requests for today.</p>
+          <button type="button" (click)="retry(stock, 'company')">Retry</button>
+        </div>
+      }
+    </section>
+  }
 
-@if (stock.news.length > 0) {
-  <app-news
-    [ngClass]="{'hidden': stock.isCollapsed}"
-    [news]="stock.news"
-    (stockSelected)="onStockSelected($event)">
-  </app-news>
-}
+  <!-- News -->
+  @if (stock.load.news === 'ready' && stock.news.length > 0) {
+    <app-news
+      [news]="stock.news"
+      (stockSelected)="onStockSelected($event)">
+    </app-news>
+  } @else {
+    <section class="slot">
+      <h1 class="section-title">Recent News</h1>
+      @switch (stock.load.news) {
+        @case ('loading') {
+          <div class="skeleton-news" role="status">
+            <span class="visually-hidden">Loading news…</span>
+            @for (row of [1, 2, 3]; track row) {
+              <div class="skeleton-article">
+                <span class="skeleton thumb"></span>
+                <span class="skeleton-lines">
+                  <span class="skeleton bar short"></span>
+                  <span class="skeleton bar"></span>
+                </span>
+              </div>
+            }
+          </div>
+        }
+        @case ('error') {
+          <div class="failure" role="alert">
+            <p>Couldn't load the news.</p>
+            <button type="button" (click)="retry(stock, 'news')">Retry</button>
+          </div>
+        }
+        @default {
+          <p class="empty">No news about {{ stock.symbol }} in the past year.</p>
+        }
+      }
+    </section>
+  }
+</div>

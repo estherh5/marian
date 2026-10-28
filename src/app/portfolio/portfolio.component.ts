@@ -2,7 +2,7 @@ import { Component, input, output } from '@angular/core';
 import { NgClass } from '@angular/common';
 
 import { ShareRemoval } from '../share';
-import { Stock, StockSelection } from '../stock';
+import { Stock, StockPart, StockSelection } from '../stock';
 import { CalculatorComponent } from './calculator/calculator.component';
 import { ChartComponent } from './chart/chart.component';
 import { CompanyComponent } from './company/company.component';
@@ -22,6 +22,7 @@ export class PortfolioComponent {
   readonly shareRemoved = output<ShareRemoval>();
   readonly stockRemoved = output<Stock>();
   readonly stockSelected = output<StockSelection>();
+  readonly retried = output<{ symbol: string; part: StockPart }>();
 
   // Exposed so the template can format price changes.
   readonly Math = Math;
@@ -44,6 +45,11 @@ export class PortfolioComponent {
   // Emit a stock-selected event when a related stock is selected in the news.
   onStockSelected(stock: StockSelection): void {
     this.stockSelected.emit(stock);
+  }
+
+  // Ask for one part of the card again after it failed.
+  retry(stock: Stock, part: StockPart): void {
+    this.retried.emit({ symbol: stock.symbol, part });
   }
 
   // Emit a stock-removed event when the remove-stock button is clicked.

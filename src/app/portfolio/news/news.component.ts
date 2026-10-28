@@ -42,6 +42,11 @@ export class NewsComponent {
     return days === 1 ? '1 day ago' : `${days} days ago`;
   }
 
+  // A thumbnail that fails to load leaves its tile empty rather than broken.
+  hideImage(event: Event): void {
+    (event.target as HTMLImageElement).remove();
+  }
+
   // Emit a stock selected event when a related stock is selected for an article.
   selectStock(symbol: string): void {
     // Get the selected stock's name to pass in the stock selected event.

@@ -6,20 +6,23 @@
       <div class="article">
 
         <!-- Article thumbnail that links to article -->
-        <a href="{{ article.url }}" target="_blank" class="article-image">
-          <img src="{{ article.image }}">
+        <!-- Duplicates the headline link, so it is skipped by keyboard and screen readers -->
+        <a href="{{ article.url }}" target="_blank" rel="noopener" class="article-image" tabindex="-1" aria-hidden="true">
+          @if (article.image) {
+            <img src="{{ article.image }}" alt="" loading="lazy" (error)="hideImage($event)">
+          }
         </a>
 
         <div class="article-info">
 
           <!-- Article source | number of minutes/hours/days ago that article was published -->
           <div class="source-name">
-            <a href="{{ article.url }}" target="_blank">{{ article.source }}</a> | {{ toTimeAgo(article.datetime) }}
+            <a href="{{ article.url }}" target="_blank" rel="noopener">{{ article.source }}</a> | {{ toTimeAgo(article.datetime) }}
           </div>
 
           <!-- Article headline (trimmed if > 100 characters) -->
           <div class="article-title">
-            <a href="{{ article.url }}" target="_blank" title="{{ article.headline }}">
+            <a href="{{ article.url }}" target="_blank" rel="noopener" title="{{ article.headline }}">
               {{ article.headline.length > 100 ? article.headline.slice(0, 100) + '...' : article.headline }}
             </a>
           </div>
@@ -27,7 +30,7 @@
           <!-- Related stocks -->
           <div id="related-container">
             @for (related of article.related; track related) {
-              <div class="related" (click)="selectStock(related)">{{ related }}</div>
+              <button type="button" class="related" (click)="selectStock(related)" [attr.aria-label]="'Add ' + related">{{ related }}</button>
             }
           </div>
         </div>

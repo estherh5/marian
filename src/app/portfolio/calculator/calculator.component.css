@@ -35,12 +35,31 @@ input[type=date]:invalid::-webkit-datetime-edit {
 }
 
 .remove {
-  visibility: hidden;
+  min-width: 32px;
+  min-height: 32px;
+  background: none;
+  color: #666666;
   font-size: 14px;
+  visibility: hidden;
 }
 
-.stock-row:hover .remove {
+.remove:hover {
+  background-color: #f5f5f5;
+  color: #cc0000;
+}
+
+.stock-row:hover .remove,
+.remove:focus-visible {
   visibility: visible;
+}
+
+/* No hover on touch, so the control is always there, at the 44px floor. */
+@media (hover: none), (pointer: coarse) {
+  .remove {
+    min-width: 44px;
+    min-height: 44px;
+    visibility: visible;
+  }
 }
 
 /* #ff0000 was 4.0:1 on white; this is .down's red at 5.9:1. */

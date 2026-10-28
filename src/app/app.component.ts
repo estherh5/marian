@@ -5,7 +5,7 @@ import { interval } from 'rxjs';
 
 import { Article } from './article';
 import { Share } from './share';
-import { Stock, StockSelection } from './stock';
+import { LoadState, Stock, StockPart, StockSelection } from './stock';
 import { StockService } from './stock.service';
 import { SYMBOLS } from './symbols';
 import { FooterComponent } from './footer/footer.component';
@@ -13,6 +13,12 @@ import { HeaderComponent } from './header/header.component';
 import { NetChartComponent } from './net-chart/net-chart.component';
 import { PortfolioComponent } from './portfolio/portfolio.component';
 import { SearchComponent } from './search/search.component';
+
+// Alpha Vantage's notice when the free tier's per-second or per-day limit is hit.
+function isRateLimited(body: unknown): boolean {
+  const notice = (body as { Information?: string; Note?: string } | null);
+  return /rate limit|requests per|sparingly/i.test(`${notice?.Information ?? ''} ${notice?.Note ?? ''}`);
+}
 
 @Component({
   selector: 'app-root',
@@ -36,6 +42,10 @@ export class AppComponent implements OnInit {
 
   // Whether the net equity chart should be updated.
   updateNetChart = false;
+
+  // The stock removed last, kept for a few seconds so its removal can be undone.
+  readonly removed = signal<{ stock: Stock; index: number } | null>(null);
+  private undoTimer: ReturnType<typeof setTimeout> | undefined;
 
   // Known stock symbols, used to filter news "related" symbols.
   private readonly symbols: string[] = SYMBOLS;
@@ -130,9 +140,14 @@ export class AppComponent implements OnInit {
         AssetType: null,
       },
       news: [],
+      load: { quote: 'loading', history: 'loading', company: 'loading', news: 'loading' },
       isCollapsed: false,
       updateChart: false,
     }]);
+
+    // Bring the new card into view now; its sections fill in as data arrives.
+    this.changeDetector.detectChanges();
+    document.getElementById(stock.symbol)?.scrollIntoView();
 
     // Load data for the newly added stock.
     this.getPriceHistory(stock.symbol);
@@ -199,85 +214,148 @@ export class AppComponent implements OnInit {
 
   // Get information about the specified stock's company.
   getCompanyData(symbol: string): void {
-    this.stockService.getCompanyData(symbol).subscribe((data) => {
-      this.patchStock(symbol, { company: data });
-
-      // Scroll to the selected stock.
-      document.getElementById(symbol)?.scrollIntoView();
+    this.stockService.getCompanyData(symbol).subscribe({
+      next: (data) => {
+        // Alpha Vantage answers 200 either way: a rate-limit notice is worth
+        // a retry, while a fund (a premium endpoint) or an unknown symbol has
+        // no overview to retry for.
+        if (data?.Symbol) {
+          this.patchStock(symbol, { company: data });
+          this.setLoad(symbol, 'company', 'ready');
+        } else if (isRateLimited(data)) {
+          this.setLoad(symbol, 'company', 'error');
+        } else {
+          this.setLoad(symbol, 'company', 'ready');
+        }
+      },
+      error: () => this.setLoad(symbol, 'company', 'error'),
     });
   }
 
   // Get the current price for the specified stock.
   getCurrentPrice(symbol: string): void {
-    this.stockService.getCurrentPrice(symbol).subscribe((data) => {
-      // The quote's own change gives the day's direction. Alpha Vantage's daily
-      // series already holds today's close, so comparing against it can't.
-      // Finnhub sends a null change for a symbol it doesn't know.
-      const isRising = typeof data.d === 'number' ? data.d >= 0 : null;
-      this.patchStock(symbol, { price: data.c, change: data.d, changePercent: data.dp, isRising });
+    this.stockService.getCurrentPrice(symbol).subscribe({
+      next: (data) => {
+        // The quote's own change gives the day's direction. Alpha Vantage's daily
+        // series already holds today's close, so comparing against it can't.
+        // Finnhub sends a null change for a symbol it doesn't know.
+        const isRising = typeof data.d === 'number' ? data.d >= 0 : null;
+        this.patchStock(symbol, { price: data.c, change: data.d, changePercent: data.dp, isRising });
+        this.setLoad(symbol, 'quote', 'ready');
+      },
+      // A failed minute refresh keeps the last price on screen.
+      error: () => {
+        if (this.selectedStocks().find((s) => s.symbol === symbol)?.price == null) {
+          this.setLoad(symbol, 'quote', 'error');
+        }
+      },
     });
   }
 
   // Get the price history for the specified stock.
   getPriceHistory(symbol: string): void {
-    this.stockService.getDailyData(symbol).subscribe((data) => {
-      const stock = this.selectedStocks().find((s) => s.symbol === symbol);
-      if (!stock) {
-        return;
-      }
-      const series = data['Time Series (Daily)'];
-
-      if (series) {
-        // Format the daily data and order it from oldest to newest date.
-        const apiData = Object.keys(series)
-          .map((date) => ({
-            // Set the date time to 12:00 AM EST.
-            date: new Date(`${date.replace(/-/g, '/')} 00:00 GMT-4`),
-            close: parseFloat(series[date]['4. close']),
-            volume: parseFloat(series[date]['5. volume']),
-            dividend: 0,
-          }))
-          .reverse();
-
-        this.patchStock(symbol, { priceHistory: apiData, updateChart: true });
-
-        // Cache the history so it can be reloaded if the API rate-limits us.
-        sessionStorage.setItem(symbol, JSON.stringify(apiData));
-      } else {
-        // The API limited us; fall back to cached data when available.
-        const cached = sessionStorage.getItem(symbol);
-        if (cached) {
-          const priceHistory = (JSON.parse(cached) as Array<Record<string, unknown>>).map((point) => ({
-            date: new Date(point['date'] as string),
-            close: point['close'] as number,
-            volume: point['volume'] as number,
-            dividend: point['dividend'] as number,
-          }));
-          this.patchStock(symbol, { priceHistory, updateChart: true });
-        }
-      }
+    this.stockService.getDailyData(symbol).subscribe({
+      next: (data) => this.onPriceHistory(symbol, data['Time Series (Daily)']),
+      error: () => this.onPriceHistory(symbol, undefined),
     });
+  }
+
+  private onPriceHistory(symbol: string, series: Record<string, Record<string, string>> | undefined): void {
+    if (!this.selectedStocks().some((s) => s.symbol === symbol)) {
+      return;
+    }
+
+    if (series) {
+      // Format the daily data and order it from oldest to newest date.
+      const apiData = Object.keys(series)
+        .map((date) => ({
+          // Set the date time to 12:00 AM EST.
+          date: new Date(`${date.replace(/-/g, '/')} 00:00 GMT-4`),
+          close: parseFloat(series[date]['4. close']),
+          volume: parseFloat(series[date]['5. volume']),
+          dividend: 0,
+        }))
+        .reverse();
+
+      this.patchStock(symbol, { priceHistory: apiData, updateChart: true });
+      this.setLoad(symbol, 'history', 'ready');
+
+      // Cache the history so it can be reloaded if the API rate-limits us.
+      sessionStorage.setItem(symbol, JSON.stringify(apiData));
+    } else {
+      // The API limited us or failed; fall back to cached data when available.
+      const cached = sessionStorage.getItem(symbol);
+      if (cached) {
+        const priceHistory = (JSON.parse(cached) as Array<Record<string, unknown>>).map((point) => ({
+          date: new Date(point['date'] as string),
+          close: point['close'] as number,
+          volume: point['volume'] as number,
+          dividend: point['dividend'] as number,
+        }));
+        this.patchStock(symbol, { priceHistory, updateChart: true });
+        this.setLoad(symbol, 'history', 'ready');
+      } else {
+        this.setLoad(symbol, 'history', 'error');
+      }
+    }
   }
 
   // Get the latest news for the specified stock.
   getStockNews(symbol: string): void {
-    this.stockService.getStockNews(symbol).subscribe((data) => {
-      if (data.length) {
-        const news: Article[] = data.slice(0, 10).map((raw) => ({
-          ...raw,
-          // The raw API value is a comma-delimited string; keep only known symbols.
-          related: raw.related.split(',').filter((item) => this.symbols.includes(item)),
-        }));
-
-        this.patchStock(symbol, { news });
-
-        // Cache the news so it can be reloaded if the API rate-limits us.
-        sessionStorage.setItem(`${symbol}-news`, JSON.stringify(news));
+    const fallBack = (): void => {
+      const cached = sessionStorage.getItem(`${symbol}-news`);
+      if (cached) {
+        this.patchStock(symbol, { news: JSON.parse(cached) as Article[] });
+        this.setLoad(symbol, 'news', 'ready');
       } else {
-        const cached = sessionStorage.getItem(`${symbol}-news`);
-        this.patchStock(symbol, { news: cached ? (JSON.parse(cached) as Article[]) : [] });
+        this.setLoad(symbol, 'news', 'error');
       }
+    };
+
+    this.stockService.getStockNews(symbol).subscribe({
+      error: fallBack,
+      next: (data) => {
+        if (!Array.isArray(data)) {
+          fallBack();
+        } else if (data.length) {
+          const news: Article[] = data.slice(0, 10).map((raw) => ({
+            ...raw,
+            // The raw API value is a comma-delimited string; keep only known symbols.
+            related: raw.related.split(',').filter((item) => this.symbols.includes(item)),
+          }));
+
+          this.patchStock(symbol, { news });
+          this.setLoad(symbol, 'news', 'ready');
+
+          // Cache the news so it can be reloaded if the API rate-limits us.
+          sessionStorage.setItem(`${symbol}-news`, JSON.stringify(news));
+        } else {
+          // No news in the past year is an answer, not a failure.
+          this.patchStock(symbol, { news: [] });
+          this.setLoad(symbol, 'news', 'ready');
+        }
+      },
     });
+  }
+
+  // Record where one of a stock's requests stands.
+  private setLoad(symbol: string, part: StockPart, state: LoadState): void {
+    const stock = this.selectedStocks().find((s) => s.symbol === symbol);
+    if (stock) {
+      this.patchStock(symbol, { load: { ...stock.load, [part]: state } });
+    }
+  }
+
+  // Request one part of a stock's card again after it failed.
+  retry({ symbol, part }: { symbol: string; part: StockPart }): void {
+    this.setLoad(symbol, part, 'loading');
+    const load = {
+      quote: () => this.getCurrentPrice(symbol),
+      history: () => this.getPriceHistory(symbol),
+      company: () => this.getCompanyData(symbol),
+      news: () => this.getStockNews(symbol),
+    };
+    load[part]();
   }
 
   // Reset the update flag after the net equity chart has been updated.
@@ -315,7 +393,30 @@ export class AppComponent implements OnInit {
 
   // Remove the specified stock from the user's portfolio.
   removeStock(stock: Stock): void {
+    const index = this.selectedStocks().findIndex((obj) => obj.symbol === stock.symbol);
     this.selectedStocks.update((stocks) => stocks.filter((obj) => obj.symbol !== stock.symbol));
+    this.displayNetChart();
+
+    // Offer an undo: the card may hold shares the user typed in.
+    clearTimeout(this.undoTimer);
+    this.removed.set({ stock, index });
+    this.undoTimer = setTimeout(() => this.removed.set(null), 8000);
+  }
+
+  // Put the last removed stock back where it was.
+  undoRemove(): void {
+    const removed = this.removed();
+    if (!removed) {
+      return;
+    }
+    clearTimeout(this.undoTimer);
+    this.removed.set(null);
+    this.isLandingPage = false;
+    this.selectedStocks.update((stocks) => {
+      const next = [...stocks];
+      next.splice(removed.index, 0, { ...removed.stock, updateChart: true });
+      return next;
+    });
     this.displayNetChart();
   }
 

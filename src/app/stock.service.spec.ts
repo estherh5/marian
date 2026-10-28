@@ -53,4 +53,27 @@ describe('StockService', () => {
     expect(req.request.params.get('symbol')).toBe('AAPL');
     req.flush([]);
   });
+
+  it('spaces Alpha Vantage calls a second apart, so the second one is not rate-limited', () => {
+    vi.useFakeTimers();
+    try {
+      service.getDailyData('AAPL').subscribe();
+      service.getCompanyData('AAPL').subscribe();
+
+      // Finnhub is a different provider and is not held back.
+      service.getCurrentPrice('AAPL').subscribe();
+      httpMock.expectOne((r) => r.url === '/api/quote').flush({});
+
+      httpMock.expectOne((r) => r.url === '/api/daily').flush({});
+      httpMock.expectNone((r) => r.url === '/api/company');
+
+      vi.advanceTimersByTime(StockService.ALPHA_VANTAGE_SPACING_MS - 1);
+      httpMock.expectNone((r) => r.url === '/api/company');
+
+      vi.advanceTimersByTime(1);
+      httpMock.expectOne((r) => r.url === '/api/company').flush({});
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

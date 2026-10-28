@@ -8,7 +8,7 @@
 
           <!-- Share purchase date -->
           <td>
-            Purchase Date:
+            <label for="{{ selectedStock().symbol + 'dateInput' + i }}">Purchase Date:</label>
             <input
               id="{{ selectedStock().symbol + 'dateInput' + i }}"
               type="date"
@@ -21,7 +21,7 @@
 
           <!-- Number of shares purchased -->
           <td>
-            Number of Shares:
+            <label for="{{ selectedStock().symbol + 'numberInput' + i }}">Number of Shares:</label>
             <input
               id="{{ selectedStock().symbol + 'numberInput' + i }}"
               min="1"
@@ -36,7 +36,7 @@
 
           <!-- Price per share purchased -->
           <td>
-            Price per Share: $
+            <label for="{{ selectedStock().symbol + 'priceInput' + i }}">Price per Share: $</label>
             <input
               id="{{ selectedStock().symbol + 'priceInput' + i }}"
               min="0"
@@ -51,7 +51,9 @@
 
           <!-- Remove share button -->
           <td>
-            <a class="remove" (click)="removeShare(selectedStock().symbol, i)">&times;</a>
+            <button type="button" class="remove" (click)="removeShare(selectedStock().symbol, i)" aria-label="Remove this purchase" title="Remove this purchase">
+              <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
           </td>
         </tr>
 

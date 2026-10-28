@@ -9,6 +9,12 @@ export interface StockSelection {
   name: string;
 }
 
+/** Where one of a stock's four requests stands. Empty is a ready list with no rows. */
+export type LoadState = 'loading' | 'ready' | 'error';
+
+/** The four requests that fill a stock's card. */
+export type StockPart = 'quote' | 'history' | 'company' | 'news';
+
 export interface Stock {
   symbol: string;
   name: string;
@@ -20,6 +26,7 @@ export interface Stock {
   priceHistory: PriceData[];
   company: Company;
   news: Article[];
+  load: Record<StockPart, LoadState>;
   isCollapsed: boolean;
   updateChart: boolean;
 }

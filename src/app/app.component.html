@@ -26,9 +26,18 @@
       (shareEntered)="addNewShare($event)"
       (shareRemoved)="removeShare($event)"
       (stockRemoved)="removeStock($event)"
+      (retried)="retry($event)"
       (stockSelected)="addNewStock($event)">
     </app-portfolio>
   }
 
   <app-footer></app-footer>
+</div>
+
+<!-- Undo the last removal -->
+<div class="undo-bar" [class.open]="removed()" role="status" aria-live="polite">
+  @if (removed(); as last) {
+    <span>Removed {{ last.stock.name }} ({{ last.stock.symbol }}).</span>
+    <button type="button" (click)="undoRemove()">Undo</button>
+  }
 </div>

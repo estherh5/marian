@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
-import { Observable } from 'rxjs';
+import { Observable, switchMap, timer } from 'rxjs';
 
 import { Company } from './company';
 
@@ -47,11 +47,25 @@ export class StockService {
   // Vantage and Finnhub API keys stay server-side (see netlify/functions/*).
   private readonly apiUrl = '/api';
 
+  // Alpha Vantage's free tier answers a second request inside a second with a
+  // rate-limit notice instead of data, so its calls leave at least this far apart.
+  static readonly ALPHA_VANTAGE_SPACING_MS = 1100;
+  private nextAlphaVantageSlot = 0;
+
+  // Delay an Alpha Vantage request until its turn. HttpClient requests are
+  // lazy, so nothing is sent until the timer fires.
+  private alphaVantage<T>(request: Observable<T>): Observable<T> {
+    const now = Date.now();
+    const wait = Math.max(0, this.nextAlphaVantageSlot - now);
+    this.nextAlphaVantageSlot = now + wait + StockService.ALPHA_VANTAGE_SPACING_MS;
+    return wait === 0 ? request : timer(wait).pipe(switchMap(() => request));
+  }
+
   // Get information about the specified stock's company.
   getCompanyData(symbol: string): Observable<Company> {
-    return this.http.get<Company>(`${this.apiUrl}/company`, {
+    return this.alphaVantage(this.http.get<Company>(`${this.apiUrl}/company`, {
       params: new HttpParams().set('symbol', symbol),
-    });
+    }));
   }
 
   // Get the current price for the specified stock.
@@ -63,9 +77,9 @@ export class StockService {
 
   // Get daily price data for the specified stock (free-tier: latest 100 days).
   getDailyData(symbol: string): Observable<AlphaVantageDailyResponse> {
-    return this.http.get<AlphaVantageDailyResponse>(`${this.apiUrl}/daily`, {
+    return this.alphaVantage(this.http.get<AlphaVantageDailyResponse>(`${this.apiUrl}/daily`, {
       params: new HttpParams().set('symbol', symbol),
-    });
+    }));
   }
 
   // Get the latest year of news for the specified stock.
