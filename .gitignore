@@ -50,3 +50,6 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
+
+# impeccable critique snapshots: agent scratch, kept out of this public repo
+/.impeccable/

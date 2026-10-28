@@ -36,8 +36,4 @@ export class CompanyComponent {
       return this.company().weburl ?? '';
     }
   });
-
-  toTitleCase(str: string): string {
-    return str.toLowerCase().replace(/\b\w/g, (s) => s.toUpperCase());
-  }
 }

@@ -10,7 +10,7 @@
       <div class="item"><dt>Industry</dt><dd>{{ company().finnhubIndustry }}</dd></div>
     }
     @if (company().exchange) {
-      <div class="item"><dt>Exchange</dt><dd>{{ toTitleCase(company().exchange ?? '') }}</dd></div>
+      <div class="item"><dt>Exchange</dt><dd>{{ company().exchange }}</dd></div>
     }
     @if (marketCap()) {
       <div class="item"><dt>Market cap</dt><dd>{{ marketCap() }}</dd></div>
