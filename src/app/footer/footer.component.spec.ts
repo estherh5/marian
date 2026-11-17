@@ -20,12 +20,12 @@ describe('FooterComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('renders the fleet kit footer exactly once, with the current year', () => {
+  it('renders the fleet kit footer exactly once, with the current year and no start year', () => {
     const footers = root.querySelectorAll('footer.fleet-footer');
     expect(footers.length).toBe(1);
     const links = Array.from(footers[0].querySelectorAll('a'));
     expect(links.map((a) => a.textContent)).toEqual([
-      `© 2017–${new Date().getFullYear()} Crystal Prism`,
+      `© ${new Date().getFullYear()} Crystal Prism`,
     ]);
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
       'https://crystalprism.io',
