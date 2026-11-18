@@ -62,10 +62,6 @@ a:focus {
   outline-offset: 2px;
 }
 
-a[href="http://www.amcharts.com"] {
-  display: none !important;
-}
-
 button {
   padding-top: 3px;
   padding-bottom: 3px;

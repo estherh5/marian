@@ -1,6 +1,7 @@
 {
   "name": "marian",
   "version": "1.0.0",
+  "license": "MIT",
   "scripts": {
     "ng": "ng",
     "gen-flare-env": "node scripts/gen-flare-env.mjs",

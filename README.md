@@ -56,3 +56,9 @@ ALGOLIA_ADMIN_KEY=your-admin-key npm run refresh-tickers
 Supported environment variables: `ALPHAVANTAGE_KEY`, `ALGOLIA_APP_ID`,
 `ALGOLIA_INDEX`, and `ALGOLIA_ADMIN_KEY`. The Algolia **admin** key is
 write-capable — pass it only at runtime and never commit it.
+
+## License
+Marian's own code is released under the [MIT License](LICENSE). Its charts use
+[amCharts 5](https://www.amcharts.com/), which is not covered by that license: it is
+used under amCharts' own [free license](https://github.com/amcharts/amcharts5/blob/master/packages/amcharts5/LICENSE),
+which requires the amCharts branding link on each chart to stay visible.
